@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>HybridEngine · Agent Orchestration & Observability</title>
+<title>TCO Optimisation · Team Recommendation Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -17,30 +17,17 @@
           mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular'],
         },
         colors: {
-          ink: {
-            950: '#070A12',
-            900: '#0B0F19',
-            850: '#0F1422',
-            800: '#141A2B',
-            750: '#1A2138',
-            700: '#222A45',
-            600: '#2D3756',
-            500: '#3E4A6E',
-          },
-          slate2: {
-            300: '#A6B0CC',
-            400: '#7C88A8',
-            500: '#5A6788',
-          },
-          emerald2: { 400: '#22E39C', 500: '#10D58A', 600: '#0BAE71' },
-          amber2:   { 400: '#FFC857', 500: '#FFB020', 600: '#E08800' },
-          crimson2: { 400: '#FF5470', 500: '#FF2A4D', 600: '#D11233' },
-          azure2:   { 400: '#5EA8FF', 500: '#3B82F6', 600: '#1E5BCC' },
+          ink: { 950:'#070A12', 900:'#0B0F19', 850:'#0F1422', 800:'#141A2B', 750:'#1A2138', 700:'#222A45', 600:'#2D3756', 500:'#3E4A6E' },
+          slate2: { 300:'#A6B0CC', 400:'#7C88A8', 500:'#5A6788' },
+          emerald2: { 400:'#22E39C', 500:'#10D58A', 600:'#0BAE71' },
+          amber2:   { 400:'#FFC857', 500:'#FFB020', 600:'#E08800' },
+          crimson2: { 400:'#FF5470', 500:'#FF2A4D', 600:'#D11233' },
+          azure2:   { 400:'#5EA8FF', 500:'#3B82F6', 600:'#1E5BCC' },
         },
         boxShadow: {
-          'glow-amber':   '0 0 0 1px rgba(255,176,32,0.35), 0 0 24px -4px rgba(255,176,32,0.5)',
-          'glow-crimson': '0 0 0 1px rgba(255,42,77,0.4),  0 0 28px -4px rgba(255,42,77,0.55)',
           'glow-emerald': '0 0 0 1px rgba(16,213,138,0.35), 0 0 22px -6px rgba(16,213,138,0.45)',
+          'glow-amber':   '0 0 0 1px rgba(255,176,32,0.35),  0 0 24px -4px rgba(255,176,32,0.5)',
+          'glow-crimson': '0 0 0 1px rgba(255,42,77,0.4),    0 0 28px -4px rgba(255,42,77,0.55)',
         },
       },
     },
@@ -48,1088 +35,862 @@
 </script>
 <style>
   html, body, #root { height: 100%; }
-  body {
-    margin: 0;
-    background: #0B0F19;
-    color: #E5EAF5;
-    font-family: 'Inter', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-  ::selection { background: rgba(255,176,32,0.3); color: #fff; }
+  body { margin:0; background:#0B0F19; color:#E5EAF5; font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  ::selection { background:rgba(94,168,255,0.3); color:#fff; }
 
-  /* Subtle dotted grid background */
-  .bg-grid {
-    background-image: radial-gradient(rgba(120,140,190,0.07) 1px, transparent 1px);
-    background-size: 22px 22px;
-  }
+  .bg-grid { background-image: radial-gradient(rgba(120,140,190,0.07) 1px, transparent 1px); background-size:22px 22px; }
 
-  /* Scanline sweep for live containers */
-  @keyframes scan {
-    0%   { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
-  }
-  .scanline::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(94,168,255,0.07) 50%, transparent 100%);
-    animation: scan 5.5s linear infinite;
-    pointer-events: none;
-  }
-
-  /* Critical-alert blink */
-  @keyframes blink-amber {
-    0%, 100% { background-color: rgba(255,176,32,0.16); border-color: rgba(255,176,32,0.55); }
-    50%      { background-color: rgba(255,176,32,0.28); border-color: rgba(255,200,87,0.95); }
-  }
-  .blink-amber { animation: blink-amber 1.5s ease-in-out infinite; }
-
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1;    transform: scale(1); }
-    50%      { opacity: 0.55; transform: scale(0.85); }
-  }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.85)} }
   .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar       { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: #0B0F19; }
-  ::-webkit-scrollbar-thumb { background: #222A45; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #2D3756; }
+  @keyframes blink-emerald { 0%,100%{background-color:rgba(16,213,138,.10);border-color:rgba(16,213,138,.45)} 50%{background-color:rgba(16,213,138,.20);border-color:rgba(16,213,138,.9)} }
+  .blink-emerald { animation: blink-emerald 1.6s ease-in-out infinite; }
 
-  /* PRP banner stripe */
-  .tape {
-    background: repeating-linear-gradient(
-      45deg,
-      rgba(255,176,32,0.08) 0 8px,
-      rgba(255,176,32,0.16) 8px 16px
-    );
+  @keyframes blink-amber { 0%,100%{background-color:rgba(255,176,32,.10);border-color:rgba(255,176,32,.45)} 50%{background-color:rgba(255,176,32,.22);border-color:rgba(255,200,87,.9)} }
+  .blink-amber { animation: blink-amber 1.5s ease-in-out infinite; }
+
+  ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:#0B0F19} ::-webkit-scrollbar-thumb{background:#222A45;border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#2D3756}
+
+  .switch-track{transition:background-color .15s ease}
+  .switch-thumb{transition:transform .18s cubic-bezier(.4,1.4,.6,1)}
+
+  select, input[type=number] {
+    background:#0F1422; border:1px solid #222A45; color:#E5EAF5;
+    border-radius:3px; padding:3px 8px; font-family:'JetBrains Mono',monospace; font-size:11px;
+    outline:none; width:100%;
   }
+  select:focus, input[type=number]:focus { border-color:#5EA8FF; }
 
-  /* Toggle */
-  .switch-track { transition: background-color .15s ease; }
-  .switch-thumb { transition: transform .18s cubic-bezier(.4,1.4,.6,1); }
-
-  /* Range slider */
   input[type="range"].slider {
-    -webkit-appearance: none;
-    width: 100%; height: 4px;
-    background: linear-gradient(90deg, #FFB020 var(--p, 40%), #222A45 var(--p, 40%));
-    border-radius: 2px; outline: none;
+    -webkit-appearance:none; width:100%; height:4px;
+    background:linear-gradient(90deg, #3B82F6 var(--p,50%), #222A45 var(--p,50%));
+    border-radius:2px; outline:none;
   }
   input[type="range"].slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px; height: 16px;
-    background: #FFB020; border: 2px solid #0B0F19;
-    box-shadow: 0 0 12px rgba(255,176,32,0.6);
-    border-radius: 50%; cursor: pointer;
-  }
-  input[type="range"].slider::-moz-range-thumb {
-    width: 16px; height: 16px;
-    background: #FFB020; border: 2px solid #0B0F19;
-    border-radius: 50%; cursor: pointer;
+    -webkit-appearance:none; width:14px; height:14px;
+    background:#5EA8FF; border:2px solid #0B0F19;
+    box-shadow:0 0 10px rgba(94,168,255,.5); border-radius:50%; cursor:pointer;
   }
 
-  /* Comprehension bar track */
-  .bar-track { background: #1A2138; }
+  @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  .marquee-track { animation: marquee 28s linear infinite; }
 
-  /* Ticker marquee */
-  @keyframes marquee {
-    0%   { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-  .marquee-track { animation: marquee 30s linear infinite; }
+  .bar-track { background:#1A2138; }
+
+  @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(100%)} }
+  .scanline::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 0%,rgba(94,168,255,.06) 50%,transparent 100%); animation:scan 6s linear infinite; pointer-events:none; }
 </style>
 </head>
 <body class="bg-ink-900 text-slate-100">
-  <div id="root"></div>
+<div id="root"></div>
 
-  <!-- React 18 + Babel standalone -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"
-          integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
-          crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
-          integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
-          crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
-          integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
-          crossorigin="anonymous"></script>
-  <!-- Lucide icons UMD -->
-  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 
-  <script type="text/babel" data-presets="react">
-// Lucide icon shortcut — reads icon data from the `lucide` global (UMD)
-// and renders to a React <svg>. Usage: <Icon name="Activity" className="w-4 h-4" />
+<script type="text/babel" data-presets="react">
 
+// ─── Model metadata (from models/model_metadata.json) ────────────────────────
+const META = {
+  accuracy: 0.900, precision: 0.8996, recall: 0.900, f1: 0.8969,
+  mape: 5.37, rmse: 1.569, r2: 0.9860,
+  perClass: {
+    Human:  { precision: 0.889, recall: 0.533, f1: 0.667, support: 15 },
+    Hybrid: { precision: 0.931, recall: 0.957, f1: 0.944, support: 141 },
+    AI:     { precision: 0.849, recall: 0.869, f1: 0.859, support: 84  },
+  },
+  baseClfAcc: { XGBoost:0.9336, DecisionTree:0.8423, ANN:0.8506, LogisticRegr:0.8216 },
+  baseRgrMape:{ XGBoost:8.97,   DecisionTree:19.06,  ANN:9.18,   LinearRegr:4.96  },
+  featureImportance: [
+    { name:'technical_risk_level',       pct:10.99 },
+    { name:'security_criticality',       pct:8.87  },
+    { name:'codebase_age_years',         pct:7.00  },
+    { name:'complexity_score',           pct:6.50  },
+    { name:'regulatory_compliance',      pct:6.26  },
+    { name:'technical_debt_score',       pct:6.18  },
+    { name:'estimated_loc',              pct:5.28  },
+    { name:'project_type',               pct:5.26  },
+    { name:'code_duplication_pct',       pct:3.50  },
+    { name:'language_modernity',         pct:3.42  },
+    { name:'last_refactor_years',        pct:3.27  },
+    { name:'domain_Security',            pct:2.87  },
+    { name:'incident_rate_monthly',      pct:2.80  },
+  ],
+  labelDist: {
+    greenfield: { Human:379, Hybrid:334, AI:87 },
+    legacy:     { Human:607, Hybrid:182, AI:11 },
+  },
+};
+
+// ─── Icon (Lucide UMD wrapper) ────────────────────────────────────────────────
 const LUCIDE = window.lucide || {};
 const ICONS  = (LUCIDE && LUCIDE.icons) || {};
 
-function toAttrs(o, extra = {}) {
-  const out = {};
-  for (const k in o) {
-    if      (k === 'stroke-width')   out.strokeWidth   = o[k];
-    else if (k === 'stroke-linecap') out.strokeLinecap  = o[k];
-    else if (k === 'stroke-linejoin')out.strokeLinejoin = o[k];
-    else if (k === 'class')          out.className      = o[k];
-    else out[k] = o[k];
-  }
-  Object.assign(out, extra);
-  return out;
+function toAttrs(o, extra={}) {
+  const out={};
+  for(const k in o){ if(k==='stroke-width') out.strokeWidth=o[k]; else if(k==='stroke-linecap') out.strokeLinecap=o[k]; else if(k==='stroke-linejoin') out.strokeLinejoin=o[k]; else if(k==='class') out.className=o[k]; else out[k]=o[k]; }
+  Object.assign(out,extra); return out;
+}
+function renderNode([tag,attrs,kids],key){ const ch=Array.isArray(kids)?kids.map((c,i)=>renderNode(c,i)):null; return React.createElement(tag,{...toAttrs(attrs),key},ch); }
+function Icon({name,className='w-4 h-4',strokeWidth=1.75,color,...rest}){
+  const data=ICONS[name]||LUCIDE[name];
+  if(!data) return <span className={className} style={{display:'inline-block',background:'currentColor',opacity:.35,borderRadius:2}}/>;
+  const[,rootAttrs,kids]=data;
+  const attrs=toAttrs(rootAttrs,{className,strokeWidth,...(color?{stroke:color}:{}),'aria-hidden':true,...rest});
+  delete attrs.width; delete attrs.height;
+  return React.createElement('svg',attrs,kids.map((c,i)=>renderNode(c,i)));
 }
 
-function renderNode([tag, attrs, kids], key) {
-  const children = Array.isArray(kids) ? kids.map((c, i) => renderNode(c, i)) : null;
-  return React.createElement(tag, { ...toAttrs(attrs), key }, children);
-}
-
-function Icon({ name, className = 'w-4 h-4', strokeWidth = 1.75, color, ...rest }) {
-  const data = ICONS[name] || LUCIDE[name];
-  if (!data) {
-    return (
-      <span
-        className={className}
-        style={{ display: 'inline-block', background: 'currentColor', opacity: 0.35, borderRadius: 2 }}
-      />
-    );
-  }
-  const [, rootAttrs, kids] = data;
-  const attrs = toAttrs(rootAttrs, {
-    className,
-    strokeWidth,
-    ...(color ? { stroke: color } : {}),
-    'aria-hidden': true,
-    ...rest,
-  });
-  delete attrs.width;
-  delete attrs.height;
-  return React.createElement('svg', attrs, kids.map((c, i) => renderNode(c, i)));
-}
-
-window.Icon = Icon;
-
-
-// Shared low-level UI primitives: Panel, Pill, Btn, Kbd, Sparkline, Toggle
-
-function Panel({ title, eyebrow, children, className = '', actions = null, dense = false }) {
-  return (
-    <section className={`relative rounded-md border border-ink-700/80 bg-ink-850/60 backdrop-blur ${className}`}>
-      {(title || eyebrow || actions) && (
+// ─── Primitives ───────────────────────────────────────────────────────────────
+function Panel({title,eyebrow,children,className='',actions=null}){
+  return(
+    <section className={`relative rounded-md border border-ink-700/80 bg-ink-850/60 ${className}`}>
+      {(title||eyebrow||actions)&&(
         <header className="flex items-center justify-between px-4 py-2.5 border-b border-ink-700/60">
           <div className="flex items-baseline gap-3 min-w-0">
-            {eyebrow && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
-                {eyebrow}
-              </span>
-            )}
-            {title && (
-              <h3 className="text-[13px] font-semibold tracking-tight text-slate-100 truncate">
-                {title}
-              </h3>
-            )}
+            {eyebrow&&<span className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500">{eyebrow}</span>}
+            {title&&<h3 className="text-[13px] font-semibold tracking-tight text-slate-100 truncate">{title}</h3>}
           </div>
-          {actions && <div className="flex items-center gap-1.5 shrink-0">{actions}</div>}
+          {actions&&<div className="flex items-center gap-1.5 shrink-0">{actions}</div>}
         </header>
       )}
-      <div className={dense ? '' : 'p-4'}>{children}</div>
+      <div className="p-4">{children}</div>
     </section>
   );
 }
-
-function Pill({ tone = 'slate', children, dot = false, className = '' }) {
-  const tones = {
-    slate:   'bg-ink-800 text-slate2-300 border-ink-700',
-    emerald: 'bg-emerald2-600/15 text-emerald2-400 border-emerald2-600/40',
-    amber:   'bg-amber2-500/15   text-amber2-400   border-amber2-500/45',
-    crimson: 'bg-crimson2-500/15 text-crimson2-400 border-crimson2-500/45',
-    azure:   'bg-azure2-500/15   text-azure2-400   border-azure2-500/40',
-  };
-  const dotTones = {
-    slate: 'bg-slate2-400', emerald: 'bg-emerald2-400',
-    amber: 'bg-amber2-400', crimson: 'bg-crimson2-400', azure: 'bg-azure2-400',
-  };
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${tones[tone]} ${className}`}>
-      {dot && <span className={`w-1.5 h-1.5 rounded-full pulse-dot ${dotTones[tone]}`} />}
-      {children}
-    </span>
-  );
+function Pill({tone='slate',children,dot=false,className=''}){
+  const t={slate:'bg-ink-800 text-slate2-300 border-ink-700',emerald:'bg-emerald2-600/15 text-emerald2-400 border-emerald2-600/40',amber:'bg-amber2-500/15 text-amber2-400 border-amber2-500/45',crimson:'bg-crimson2-500/15 text-crimson2-400 border-crimson2-500/45',azure:'bg-azure2-500/15 text-azure2-400 border-azure2-500/40'}[tone];
+  const d={slate:'bg-slate2-400',emerald:'bg-emerald2-400',amber:'bg-amber2-400',crimson:'bg-crimson2-400',azure:'bg-azure2-400'}[tone];
+  return <span className={`inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${t} ${className}`}>{dot&&<span className={`w-1.5 h-1.5 rounded-full pulse-dot ${d}`}/>}{children}</span>;
+}
+function Btn({children,variant='ghost',size='sm',className='',icon,iconRight,...rest}){
+  const v={ghost:'border border-ink-700 hover:bg-ink-800 text-slate-200',emerald:'bg-emerald2-600 hover:bg-emerald2-500 text-ink-950 border border-emerald2-500 shadow-glow-emerald',crimson:'bg-crimson2-600 hover:bg-crimson2-500 text-white border border-crimson2-500',amber:'bg-amber2-500 hover:bg-amber2-400 text-ink-950 border border-amber2-400',azure:'bg-azure2-600 hover:bg-azure2-500 text-white border border-azure2-500'}[variant];
+  const s={xs:'h-6 px-2 text-[11px] gap-1',sm:'h-7 px-2.5 text-[11.5px] gap-1.5',md:'h-8 px-3 text-xs gap-1.5',lg:'h-10 px-4 text-sm gap-2'}[size];
+  return <button className={`inline-flex items-center justify-center rounded-sm font-medium tracking-tight transition-colors ${v} ${s} ${className}`} {...rest}>{icon&&<Icon name={icon} className="w-3.5 h-3.5"/>}{children}{iconRight&&<Icon name={iconRight} className="w-3.5 h-3.5"/>}</button>;
+}
+function Kbd({children}){ return <kbd className="inline-flex items-center justify-center min-w-[1.4em] px-1.5 h-5 rounded-[3px] border border-ink-700 bg-ink-800 font-mono text-[10px] text-slate2-300">{children}</kbd>; }
+function Toggle({on,onChange,disabled=false,label}){
+  return <button type="button" onClick={()=>!disabled&&onChange(!on)} className={`switch-track relative inline-flex items-center h-5 w-9 rounded-full border ${on?'bg-emerald2-600/80 border-emerald2-500':'bg-ink-800 border-ink-600'} ${disabled?'opacity-50 cursor-not-allowed':'cursor-pointer'}`} aria-label={label} aria-pressed={on}><span className={`switch-thumb absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-slate-100 shadow-md ${on?'translate-x-4':''}`}/></button>;
+}
+function Sparkline({data,color='#5EA8FF',width=120,height=32,fill=true}){
+  const min=Math.min(...data),max=Math.max(...data),range=(max-min)||1,stepX=width/(data.length-1);
+  const pts=data.map((v,i)=>[i*stepX,height-((v-min)/range)*(height-4)-2]);
+  const d=pts.map(([x,y],i)=>(i===0?`M${x},${y}`:`L${x},${y}`)).join(' ');
+  const area=`${d} L${width},${height} L0,${height} Z`;
+  const id='sg'+color.replace('#','');
+  return <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible"><defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity=".35"/><stop offset="100%" stopColor={color} stopOpacity="0"/></linearGradient></defs>{fill&&<path d={area} fill={`url(#${id})`}/>}<path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/></svg>;
 }
 
-function Btn({ children, variant = 'ghost', size = 'sm', className = '', icon, iconRight, ...rest }) {
-  const variants = {
-    ghost:   'border border-ink-700 hover:bg-ink-800 text-slate-200',
-    solid:   'bg-slate-100 hover:bg-white text-ink-900 border border-slate-100',
-    emerald: 'bg-emerald2-600 hover:bg-emerald2-500 text-ink-950 border border-emerald2-500 shadow-glow-emerald',
-    crimson: 'bg-crimson2-600 hover:bg-crimson2-500 text-white border border-crimson2-500 shadow-glow-crimson',
-    amber:   'bg-amber2-500   hover:bg-amber2-400   text-ink-950 border border-amber2-400',
-    outline: 'border border-ink-600 hover:border-ink-500 text-slate-200',
-    danger:  'border border-crimson2-600/50 hover:bg-crimson2-600/15 text-crimson2-400',
-  };
-  const sizes = {
-    xs: 'h-6 px-2   text-[11px]   gap-1',
-    sm: 'h-7 px-2.5 text-[11.5px] gap-1.5',
-    md: 'h-8 px-3   text-xs       gap-1.5',
-    lg: 'h-10 px-4  text-sm       gap-2',
-  };
-  return (
-    <button
-      className={`inline-flex items-center justify-center rounded-sm font-medium tracking-tight transition-colors ${variants[variant]} ${sizes[size]} ${className}`}
-      {...rest}
-    >
-      {icon && <Icon name={icon} className="w-3.5 h-3.5" />}
-      {children}
-      {iconRight && <Icon name={iconRight} className="w-3.5 h-3.5" />}
-    </button>
-  );
-}
-
-function Kbd({ children }) {
-  return (
-    <kbd className="inline-flex items-center justify-center min-w-[1.4em] px-1.5 h-5 rounded-[3px] border border-ink-700 bg-ink-800 font-mono text-[10px] text-slate2-300">
-      {children}
-    </kbd>
-  );
-}
-
-// Single-colour sparkline. Pass an array of numbers.
-function Sparkline({ data, color = '#5EA8FF', width = 120, height = 32, fill = true }) {
-  const min = Math.min(...data), max = Math.max(...data);
-  const range = (max - min) || 1;
-  const stepX = width / (data.length - 1);
-  const points = data.map((v, i) => [
-    i * stepX,
-    height - ((v - min) / range) * (height - 4) - 2,
-  ]);
-  const d    = points.map(([x, y], i) => (i === 0 ? `M${x},${y}` : `L${x},${y}`)).join(' ');
-  const area = `${d} L${width},${height} L0,${height} Z`;
-  const id   = 'sg-' + color.replace('#', '');
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor={color} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {fill && <path d={area} fill={`url(#${id})`} />}
-      <path d={d} fill="none" stroke={color} strokeWidth="1.5"
-            strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-// Toggle switch
-function Toggle({ on, onChange, disabled = false, label }) {
-  return (
-    <button
-      type="button"
-      onClick={() => !disabled && onChange(!on)}
-      className={`switch-track relative inline-flex items-center h-5 w-9 rounded-full border
-        ${on ? 'bg-emerald2-600/80 border-emerald2-500' : 'bg-ink-800 border-ink-600'}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-      aria-label={label}
-      aria-pressed={on}
-    >
-      <span className={`switch-thumb absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-slate-100 shadow-md ${on ? 'translate-x-4' : ''}`} />
-    </button>
-  );
-}
-
-Object.assign(window, { Panel, Pill, Btn, Kbd, Sparkline, Toggle });
-
-
-// Global left-hand navigation sidebar
-
-const NAV = [
-  { group: 'Operations', items: [
-    { id: 'dashboard',    label: 'Mission Control',       icon: 'LayoutDashboard',  badge: 'PRP' },
-    { id: 'harness',      label: 'Agent Harness',         icon: 'ShieldHalf',       badge: 3, badgeTone: 'amber' },
-    { id: 'fleet',        label: 'Agent Fleet',           icon: 'BotMessageSquare', badge: '24/40' },
-    { id: 'incidents',    label: 'Incidents',             icon: 'Siren',            badge: 1, badgeTone: 'crimson' },
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+const NAV=[
+  {group:'Predict',items:[
+    {id:'predict', label:'Team Recommendation', icon:'Cpu',        badge:'LIVE', badgeTone:'emerald'},
+    {id:'batch',   label:'Batch Scoring',        icon:'Database'},
   ]},
-  { group: 'Insight', items: [
-    { id: 'debt',         label: 'Debt Analytics',        icon: 'BrainCircuit' },
-    { id: 'reviews',      label: 'Comprehension Reviews', icon: 'BookCheck' },
-    { id: 'lineage',      label: 'Code Lineage',          icon: 'GitBranch' },
-    { id: 'tco',          label: 'System TCO',            icon: 'Calculator' },
+  {group:'Diagnostics',items:[
+    {id:'metrics',   label:'Model Performance',  icon:'Activity'},
+    {id:'learners',  label:'Base Learners',       icon:'Layers'},
+    {id:'confusion', label:'Confusion Matrix',    icon:'Grid2x2'},
   ]},
-  { group: 'Configuration', items: [
-    { id: 'rules',        label: 'Agent.md Ruleset',      icon: 'FileCog' },
-    { id: 'sandboxes',    label: 'Sandbox Envelopes',     icon: 'Container' },
-    { id: 'integrations', label: 'Integrations',          icon: 'Cable' },
-    { id: 'settings',     label: 'Settings',              icon: 'Settings2' },
+  {group:'Analytics',items:[
+    {id:'features',  label:'Feature Importance',  icon:'BarChart2'},
+    {id:'dataset',   label:'Dataset Explorer',    icon:'Table'},
+    {id:'margins',   label:'Margin Analysis',     icon:'TrendingUp'},
+  ]},
+  {group:'Configuration',items:[
+    {id:'nfr',    label:'NFR Thresholds', icon:'ShieldCheck'},
+    {id:'config', label:'Model Config',   icon:'Settings2'},
   ]},
 ];
-
-function Sidebar({ active, onSelect }) {
-  return (
-    <aside className="w-[232px] shrink-0 h-full flex flex-col border-r border-ink-700/70 bg-ink-950/80">
-      {/* Brand */}
+function Sidebar({active,onSelect}){
+  return(
+    <aside className="w-[220px] shrink-0 h-full flex flex-col border-r border-ink-700/70 bg-ink-950/80">
       <div className="h-14 px-4 flex items-center gap-2.5 border-b border-ink-700/70">
         <div className="relative w-7 h-7">
-          <div className="absolute inset-0 rounded-sm bg-gradient-to-br from-emerald2-400 to-azure2-500 opacity-90" />
+          <div className="absolute inset-0 rounded-sm bg-gradient-to-br from-azure2-400 to-emerald2-500 opacity-90"/>
           <div className="absolute inset-[3px] rounded-[2px] bg-ink-950 flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-emerald2-400 pulse-dot" />
+            <div className="w-2 h-2 rounded-full bg-azure2-400 pulse-dot"/>
           </div>
         </div>
         <div className="leading-tight">
-          <div className="text-[13px] font-semibold tracking-tight text-slate-100">HybridEngine</div>
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate2-500">v2.41 · prod</div>
+          <div className="text-[13px] font-semibold tracking-tight text-slate-100">TCO Optimiser</div>
+          <div className="text-[10px] font-mono uppercase tracking-[.18em] text-slate2-500">v1.0 · stacking ensemble</div>
         </div>
       </div>
 
-      {/* Environment switcher */}
-      <button className="mx-3 mt-3 mb-2 h-8 px-2.5 flex items-center justify-between rounded-sm border border-ink-700 hover:border-ink-600 bg-ink-850 text-left">
+      <div className="mx-3 mt-3 mb-2 h-8 px-2.5 flex items-center justify-between rounded-sm border border-ink-700 bg-ink-850">
         <span className="flex items-center gap-2 text-[12px]">
-          <Icon name="Globe" className="w-3.5 h-3.5 text-emerald2-400" />
-          <span className="text-slate-200">acme-payments</span>
-          <span className="font-mono text-[10px] text-slate2-500">prod-us-east-2</span>
+          <Icon name="Braces" className="w-3.5 h-3.5 text-azure2-400"/>
+          <span className="text-slate-200">combined_features.csv</span>
         </span>
-        <Icon name="ChevronsUpDown" className="w-3 h-3 text-slate2-500" />
-      </button>
+        <span className="font-mono text-[10px] text-slate2-500">1,600 rec</span>
+      </div>
 
-      {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-2 pb-3">
-        {NAV.map((g) => (
+        {NAV.map(g=>(
           <div key={g.group} className="mt-3">
-            <div className="px-2 mb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
-              {g.group}
-            </div>
+            <div className="px-2 mb-1 font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500">{g.group}</div>
             <ul className="space-y-0.5">
-              {g.items.map((it) => {
-                const isActive = active === it.id;
-                return (
-                  <li key={it.id}>
-                    <button
-                      onClick={() => onSelect(it.id)}
-                      className={`group w-full flex items-center gap-2.5 px-2 h-8 rounded-sm text-[12.5px] transition-colors ${
-                        isActive
-                          ? 'bg-ink-800 text-slate-100 ring-1 ring-inset ring-ink-600'
-                          : 'text-slate2-300 hover:bg-ink-850 hover:text-slate-100'
-                      }`}
-                    >
-                      <Icon
-                        name={it.icon}
-                        className={`w-4 h-4 ${isActive ? 'text-emerald2-400' : 'text-slate2-400 group-hover:text-slate2-300'}`}
-                      />
-                      <span className="flex-1 text-left truncate">{it.label}</span>
-                      {it.badge !== undefined && (
-                        <Pill tone={it.badgeTone || 'slate'} className="!px-1 !py-0">{it.badge}</Pill>
-                      )}
-                    </button>
-                  </li>
-                );
+              {g.items.map(it=>{
+                const isA=active===it.id;
+                return <li key={it.id}><button onClick={()=>onSelect(it.id)} className={`group w-full flex items-center gap-2.5 px-2 h-8 rounded-sm text-[12.5px] transition-colors ${isA?'bg-ink-800 text-slate-100 ring-1 ring-inset ring-ink-600':'text-slate2-300 hover:bg-ink-850 hover:text-slate-100'}`}><Icon name={it.icon} className={`w-4 h-4 ${isA?'text-azure2-400':'text-slate2-400 group-hover:text-slate2-300'}`}/><span className="flex-1 text-left truncate">{it.label}</span>{it.badge!==undefined&&<Pill tone={it.badgeTone||'slate'} className="!px-1 !py-0">{it.badge}</Pill>}</button></li>;
               })}
             </ul>
           </div>
         ))}
       </nav>
 
-      {/* System status footer */}
-      <div className="border-t border-ink-700/70 p-3 space-y-2 text-[11px]">
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Harness</span>
-          <span className="inline-flex items-center gap-1.5 text-emerald2-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald2-400 pulse-dot" />
-            <span className="font-mono">ARMED</span>
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Intercept lag</span>
-          <span className="font-mono text-slate-200">12ms</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Quorum</span>
-          <span className="font-mono text-slate-200">2 of 3 on-call</span>
-        </div>
-        <div className="pt-2 mt-2 border-t border-ink-700/70 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber2-500 to-crimson2-500 flex items-center justify-center text-[11px] font-semibold text-ink-950">
-            MK
-          </div>
-          <div className="leading-tight">
-            <div className="text-[11.5px] text-slate-100">M. Khoury</div>
-            <div className="font-mono text-[10px] text-slate2-500">on-call · primary</div>
-          </div>
-        </div>
+      <div className="border-t border-ink-700/70 p-3 space-y-1.5">
+        <Row2 label="classifier"   val="XGB+DT+ANN+LR → LR" />
+        <Row2 label="acc / NFR-01" val="90.0% / ≥85% ✓" tone="emerald" />
+        <Row2 label="mape / NFR-02" val="5.37% / ≤5.5% ✓" tone="emerald" />
+        <Row2 label="r²"            val="0.986" />
+        <Row2 label="seed"          val="42 (reproducible)" />
       </div>
     </aside>
   );
 }
+function Row2({label,val,tone}){
+  return <div className="flex items-center justify-between font-mono text-[10px]"><span className="uppercase tracking-[.14em] text-slate2-500">{label}</span><span className={tone==='emerald'?'text-emerald2-400':tone==='amber'?'text-amber2-400':'text-slate-200'}>{val}</span></div>;
+}
 
-window.Sidebar = Sidebar;
+// ─── Top bar ──────────────────────────────────────────────────────────────────
+function TopBar({time,active}){
+  const crumbs={predict:['Predict','Team Recommendation'],batch:['Predict','Batch Scoring'],metrics:['Diagnostics','Model Performance'],learners:['Diagnostics','Base Learners'],confusion:['Diagnostics','Confusion Matrix'],features:['Analytics','Feature Importance'],dataset:['Analytics','Dataset Explorer'],margins:['Analytics','Margin Analysis'],nfr:['Configuration','NFR Thresholds'],config:['Configuration','Model Config']}[active]||['Predict','Team Recommendation'];
+  return(
+    <header className="h-14 shrink-0 border-b border-ink-700/70 bg-ink-950/60 backdrop-blur flex items-center px-5 gap-4 whitespace-nowrap">
+      <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate2-400 shrink-0">
+        <span>{crumbs[0]}</span>
+        <Icon name="ChevronRight" className="w-3 h-3 text-slate2-600"/>
+        <span className="text-slate-100">{crumbs[1]}</span>
+        <Pill tone="emerald" dot className="ml-2">MODEL READY</Pill>
+      </div>
 
+      <div className="flex-1 max-w-md">
+        <button className="w-full h-8 px-2.5 flex items-center gap-2.5 rounded-sm border border-ink-700 hover:border-ink-600 bg-ink-850/60 text-left">
+          <Icon name="Search" className="w-3.5 h-3.5 text-slate2-500 shrink-0"/>
+          <span className="text-[11.5px] text-slate2-400 flex-1 truncate">Search features, query dataset, inspect predictions…</span>
+          <Kbd>⌘</Kbd><Kbd>K</Kbd>
+        </button>
+      </div>
 
-// Section 1 — Top-Level Metrics Header (PRP Dashboard)
-// Exposes the Productivity-Reliability Paradox across 4 KPI cards.
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="hidden xl:flex items-center gap-3 pr-3 border-r border-ink-700/70">
+          <TopStat label="acc"    val="90.0%" tone="emerald"/>
+          <TopStat label="mape"   val="5.37%" tone="emerald"/>
+          <TopStat label="r²"     val="0.986" tone="emerald"/>
+          <TopStat label="records" val="1,600" tone="azure"/>
+        </div>
+        <Pill tone="azure">NFR-01 ✓</Pill>
+        <Pill tone="azure">NFR-02 ✓</Pill>
+        <Pill tone="emerald" dot>SEED 42</Pill>
+        <div className="pl-2 ml-1 border-l border-ink-700/70 font-mono text-[10.5px] text-slate2-400 tabular-nums">{time}</div>
+      </div>
+    </header>
+  );
+}
+function TopStat({label,val,tone}){
+  const t={emerald:'text-emerald2-400',amber:'text-amber2-400',azure:'text-azure2-400',crimson:'text-crimson2-400'}[tone]||'text-slate2-300';
+  return <div className="flex items-baseline gap-1.5 font-mono text-[10.5px]"><span className="uppercase tracking-[.14em] text-slate2-500">{label}</span><span className={`tabular-nums ${t}`}>{val}</span></div>;
+}
 
-function PRPHeader({ velocity, throughput, stability, spend }) {
-  const cards = [
-    {
-      eyebrow: 'INDIVIDUAL · AUTHOR',
-      label:   'Token Velocity / Author',
-      value:   velocity.toFixed(0),
-      unit:    'k tok/day',
-      delta:   '+45.2%',
-      sub:     'MoM · cohort: 142 engineers',
-      tone:    'amber',
-      icon:    'Zap',
-      trail:   'Individual output diverging from system output — classic PRP signal.',
-      data:    [62, 68, 73, 80, 86, 95, 110, 132, 150, 168, 184, 198, 212, 224],
-    },
-    {
-      eyebrow: 'SYSTEM · MERGED',
-      label:   'Codebase Throughput',
-      value:   throughput.toFixed(1),
-      unit:    'PR/day',
-      delta:   '-1.5%',
-      sub:     'merge-rate · 28d trailing',
-      tone:    'slate',
-      icon:    'GitMerge',
-      trail:   'Net merged work is flat-to-down despite individual velocity surging.',
-      data:    [44, 46, 45, 47, 46, 45, 44, 45, 46, 45, 44, 44, 43, 43],
-    },
-    {
-      eyebrow: 'RELIABILITY · CHANGE-FAIL',
-      label:   'Delivery Stability',
-      value:   stability.toFixed(1),
-      unit:    '% CFR',
-      delta:   '-7.2%',
-      sub:     'change-failure rate · rising',
-      tone:    'crimson',
-      icon:    'AlertTriangle',
-      trail:   'Stability eroding — incidents-per-deploy up across 4 of 6 services.',
-      data:    [9.0, 9.4, 10.1, 10.8, 11.6, 12.2, 12.5, 13.1, 13.4, 14.0, 14.6, 15.2, 15.8, 16.4],
-      isBad:   true,
-    },
-    {
-      eyebrow: 'ECONOMIC · BURN',
-      label:   'Agent Compute Spend',
-      value:   '$' + spend.toLocaleString(),
-      unit:    '/day',
-      delta:   '2.1× human budget',
-      sub:     'rolling 24h · tokens billed',
-      tone:    'amber',
-      icon:    'Flame',
-      trail:   'Unsupervised loops on >100k-tok contexts inflate run-rate weekly.',
-      data:    [310, 340, 380, 420, 470, 540, 610, 700, 790, 880, 940, 990, 1020, 1075],
-    },
+// ─── Section 1: Model KPI cards ───────────────────────────────────────────────
+const KPI_SPARKLINES = {
+  acc:  [72,75,77,80,82,84,85,86,88,89,90,90],
+  mape: [14,12,11,9.5,8.8,7.6,6.9,6.2,5.8,5.5,5.4,5.37],
+  r2:   [0.81,0.84,0.87,0.90,0.92,0.94,0.96,0.972,0.980,0.984,0.985,0.986],
+  recs: [150,200,300,400,500,600,800,1000,1200,1400,1600,1600],
+};
+function ModelKPIs(){
+  const cards=[
+    {eyebrow:'CLASSIFIER · NFR-01',label:'Test Accuracy',value:'90.0%',delta:'↑5pp above threshold',sub:'NFR-01 ≥ 85% · satisfied',tone:'emerald',icon:'Target',trail:'Stacking meta-LR outperforms all individual base learners. XGBoost best base at 93.4%.',data:KPI_SPARKLINES.acc,color:'#10D58A'},
+    {eyebrow:'REGRESSOR · NFR-02',label:'Margin MAPE',value:'5.37%',delta:'↓0.13pp below ceiling',sub:'NFR-02 ≤ 5.5% · satisfied',tone:'emerald',icon:'Percent',trail:'Linear meta-Ridge corrects base learner variance. Margin floor clipped to 2% to prevent MAPE explosion.',data:KPI_SPARKLINES.mape,color:'#10D58A',invert:true},
+    {eyebrow:'REGRESSOR · QUALITY',label:'R² Score',value:'0.986',delta:'98.6% variance explained',sub:'margin prediction · test set',tone:'azure',icon:'Activity',trail:'Feature-driven margin formula yields near-perfect R². No label-leakage — margin derived from features only.',data:KPI_SPARKLINES.r2,color:'#5EA8FF'},
+    {eyebrow:'DATASET · COVERAGE',label:'Training Records',value:'1,600',delta:'800 GF + 800 Legacy',sub:'SEED 42 · stratified split',tone:'slate',icon:'Database',trail:'Unified schema — Greenfield records auto-filled with domain defaults for legacy-specific features.',data:KPI_SPARKLINES.recs,color:'#7C88A8'},
   ];
-
-  return (
-    <div>
-      {/* Paradox banner */}
-      <div className="mb-3 flex items-center gap-3 px-3 py-2 rounded-md border border-amber2-500/30 bg-amber2-500/[0.05] tape">
-        <Icon name="ActivitySquare" className="w-4 h-4 text-amber2-400" />
-        <div className="text-[12px] text-slate-100">
-          <span className="font-semibold">Productivity-Reliability Paradox detected.</span>
-          <span className="text-slate2-300"> Author velocity is up 45% MoM while system stability has dropped 7.2%. Authoring comprehension trending below 60% across 11 modules.</span>
+  return(
+    <div className="grid grid-cols-4 gap-3">
+      {cards.map(c=>(
+        <div key={c.label} className={`relative rounded-md border bg-ink-850/70 p-3.5 overflow-hidden ${c.tone==='emerald'?'border-emerald2-600/40 ring-1 ring-emerald2-500/20':c.tone==='azure'?'border-azure2-600/30 ring-1 ring-azure2-500/20':'border-ink-700/80'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500">{c.eyebrow}</span>
+            <Icon name={c.icon} className={`w-3.5 h-3.5 ${c.tone==='emerald'?'text-emerald2-400':c.tone==='azure'?'text-azure2-400':'text-slate2-400'}`}/>
+          </div>
+          <div className="text-[12px] text-slate2-400 mb-1.5">{c.label}</div>
+          <div className="font-mono text-[28px] leading-none font-semibold text-slate-100 tabular-nums">{c.value}</div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className={`font-mono text-[11px] ${c.tone==='emerald'?'text-emerald2-400':c.tone==='azure'?'text-azure2-400':'text-slate2-300'}`}>{c.delta}</span>
+            <span className="font-mono text-[10px] text-slate2-500">{c.sub}</span>
+          </div>
+          <div className="mt-3 -mx-1.5"><Sparkline data={c.data} color={c.color} width={220} height={34}/></div>
+          <div className="mt-2 pt-2 border-t border-ink-700/60 text-[10.5px] leading-snug text-slate2-400">{c.trail}</div>
         </div>
-        <div className="ml-auto flex items-center gap-1.5">
-          <Pill tone="amber" dot>PARADOX · ACTIVE</Pill>
-          <Btn variant="ghost" size="xs" icon="ExternalLink">Open analysis</Btn>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-3">
-        {cards.map((c) => <KPICard key={c.label} card={c} />)}
-      </div>
+      ))}
     </div>
   );
 }
 
-function KPICard({ card }) {
-  const tones = {
-    amber:   { color: '#FFB020', ring: 'ring-amber2-500/40',   text: 'text-amber2-400' },
-    crimson: { color: '#FF2A4D', ring: 'ring-crimson2-500/40', text: 'text-crimson2-400' },
-    emerald: { color: '#10D58A', ring: 'ring-emerald2-500/40', text: 'text-emerald2-400' },
-    slate:   { color: '#7C88A8', ring: 'ring-ink-600',         text: 'text-slate2-300' },
-  };
-  const t = tones[card.tone];
+// ─── Section 2: Prediction Engine ─────────────────────────────────────────────
+const DEFAULTS = {
+  project_type:0, estimated_loc:5000, complexity_score:'Medium',
+  timeline_days:45, team_size_required:3, domain_category:'Web',
+  technical_risk_level:'Low', integration_count:2, seniority_required:'Mid',
+  regulatory_compliance:0, testing_coverage_pct:70, documentation_level:'Standard',
+  performance_tier:'Standard', security_criticality:'Low',
+  budget_pressure:'Moderate', maintainability_req:'Medium',
+  technical_debt_score:'Low', documentation_quality:'Standard',
+  language_modernity:'Current', team_familiarity:'High',
+  codebase_age_years:3, existing_test_coverage_pct:50,
+  dependency_count:40, last_refactor_years:2,
+  incident_rate_monthly:1.0, code_duplication_pct:10,
+};
 
-  const deltaIcon = card.delta.startsWith('-')
-    ? 'TrendingDown'
-    : card.delta.startsWith('+')
-      ? 'TrendingUp'
-      : 'ArrowUpRight';
+const riskMap  = {Low:0,Medium:1,High:2,Critical:3};
+const debtMap  = {Low:0,Medium:1,High:2,Critical:3};
+const famMap   = {Unfamiliar:0,Low:1,Medium:2,High:3};
+const langMap  = {Legacy:0,Dated:1,Modern:2,Current:3};
+const cplxMap  = {Low:0,Medium:1,High:2};
 
-  return (
-    <div className={`relative rounded-md border border-ink-700/80 bg-ink-850/70 p-3.5 overflow-hidden ${
-      card.tone === 'amber' || card.tone === 'crimson' ? 'ring-1 ' + t.ring : ''
-    }`}>
-      {/* Eyebrow */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">{card.eyebrow}</span>
-        <Icon name={card.icon} className={`w-3.5 h-3.5 ${t.text}`} />
-      </div>
+function simulatePredict(f){
+  const risk=riskMap[f.technical_risk_level]||0;
+  const sec=riskMap[f.security_criticality]||0;
+  const cplx=cplxMap[f.complexity_score]||0;
+  const isL=f.project_type===1;
 
-      {/* Label */}
-      <div className="text-[12px] text-slate2-400 mb-1.5">{card.label}</div>
+  if(risk>=3||sec>=3)
+    return{team:'Human',probs:{Human:0.94,Hybrid:0.05,AI:0.01},reason:'Critical risk/security — NFR-06 safety gate prevents AI routing',gate:'NFR-06'};
 
-      {/* Value */}
-      <div className="flex items-baseline gap-1.5">
-        <span className="font-mono text-[28px] leading-none font-semibold text-slate-100 tabular-nums">{card.value}</span>
-        <span className="font-mono text-[11px] text-slate2-400">{card.unit}</span>
-      </div>
+  if(isL){
+    const debt=debtMap[f.technical_debt_score]||0;
+    const fam=famMap[f.team_familiarity]||3;
+    const lang=langMap[f.language_modernity]||2;
+    if(debt>=3||fam<=1)
+      return{team:'Human',probs:{Human:0.91,Hybrid:0.08,AI:0.01},reason:'Critical legacy debt or unfamiliar team — human oversight mandatory',gate:null};
+    if(debt===0&&fam>=3&&lang>=2&&risk===0&&sec===0)
+      return{team:'AI',probs:{Human:0.07,Hybrid:0.20,AI:0.73},reason:'Modern-stack, low-debt legacy with expert familiarity — strong AI candidate',gate:null};
+    if(debt>=2||risk>=2)
+      return{team:'Human',probs:{Human:0.77,Hybrid:0.21,AI:0.02},reason:'High legacy debt or elevated risk — human-led remediation recommended',gate:null};
+    if(risk<=1&&cplx<=1)
+      return{team:'Hybrid',probs:{Human:0.22,Hybrid:0.71,AI:0.07},reason:'Moderate legacy complexity — hybrid human+AI oversight balances risk',gate:null};
+    return{team:'Human',probs:{Human:0.61,Hybrid:0.35,AI:0.04},reason:'Legacy project with multiple risk factors — human leadership preferred',gate:null};
+  }
 
-      {/* Delta + sub */}
-      <div className="mt-2.5 flex items-center justify-between">
-        <span className={`inline-flex items-center gap-1 font-mono text-[11px] ${t.text}`}>
-          <Icon name={deltaIcon} className="w-3 h-3" />
-          {card.delta}
-        </span>
-        <span className="font-mono text-[10px] text-slate2-500">{card.sub}</span>
-      </div>
-
-      {/* Sparkline */}
-      <div className="mt-3 -mx-1.5">
-        <Sparkline data={card.data} color={t.color} width={220} height={36} />
-      </div>
-
-      {/* Trail */}
-      <div className="mt-2 pt-2 border-t border-ink-700/60 text-[10.5px] leading-snug text-slate2-400">
-        {card.trail}
-      </div>
-    </div>
-  );
+  // Greenfield
+  if(cplx>=2&&risk>=2)
+    return{team:'Human',probs:{Human:0.82,Hybrid:0.16,AI:0.02},reason:'High complexity + high risk combination signals human leadership',gate:null};
+  if(f.regulatory_compliance===1&&(risk>=1||sec>=1))
+    return{team:'Hybrid',probs:{Human:0.30,Hybrid:0.64,AI:0.06},reason:'Regulatory compliance with risk factors — hybrid ensures auditability',gate:null};
+  const loc=f.estimated_loc||5000;
+  if(loc<4000&&risk===0&&cplx===0&&sec===0)
+    return{team:'AI',probs:{Human:0.05,Hybrid:0.18,AI:0.77},reason:'Small low-risk greenfield — optimal AI candidate per TCO research',gate:null};
+  if(loc<10000&&risk<=1&&cplx<=1&&sec<=1)
+    return{team:'AI',probs:{Human:0.09,Hybrid:0.29,AI:0.62},reason:'Small-medium greenfield with manageable complexity — AI cost-effective',gate:null};
+  if(risk>=2||cplx>=2)
+    return{team:'Human',probs:{Human:0.74,Hybrid:0.23,AI:0.03},reason:'Elevated complexity or risk tilts recommendation toward human oversight',gate:null};
+  return{team:'Hybrid',probs:{Human:0.17,Hybrid:0.74,AI:0.09},reason:'Standard greenfield scope — hybrid balances AI speed with human governance',gate:null};
 }
 
-window.PRPHeader = PRPHeader;
+function estimateMargin(f,team){
+  const risk=riskMap[f.technical_risk_level]||0;
+  const cplx=cplxMap[f.complexity_score]||0;
+  let base=team==='AI'?38:team==='Hybrid'?24:16;
+  base-=risk*4; base-=cplx*3;
+  if(f.regulatory_compliance===1) base-=3;
+  if(f.project_type===1){
+    base-=(debtMap[f.technical_debt_score]||0)*4+3;
+    if(f.codebase_age_years>10) base-=3;
+  }
+  const loc=f.estimated_loc||5000;
+  if(loc>20000) base-=4;
+  if(loc>60000) base-=5;
+  return Math.max(2,Math.min(58,Math.round(base)));
+}
 
+function PredictionEngine(){
+  const[f,setF]=React.useState({...DEFAULTS});
+  const[result,setResult]=React.useState(null);
+  const[running,setRunning]=React.useState(false);
+  const[stage,setStage]=React.useState(0);
 
-// Section 2 — Live Agent Harness Intercept Pipeline (centerpiece)
-// Three-stage sandboxed execution envelope: tty capture → Agent.md rule eval → HITL approval.
+  function handlePredict(){
+    setRunning(true); setResult(null); setStage(1);
+    setTimeout(()=>setStage(2),500);
+    setTimeout(()=>setStage(3),1100);
+    setTimeout(()=>{ const r=simulatePredict(f); r.margin=estimateMargin(f,r.team); setResult(r); setRunning(false); setStage(4); },1800);
+  }
 
-const AGENT_FEED = [
-  { id: 'agt-7c41', name: 'agt://refactor-billing-svc',  status: 'EXECUTING', model: 'claude-sonnet-4.6', ttl: '00:08:42' },
-  { id: 'agt-9f02', name: 'agt://infra-migrate-staging', status: 'HARNESS',   model: 'gpt-5.1-turbo',    ttl: '00:03:11' },
-  { id: 'agt-2bd1', name: 'agt://chore-deps-bump',       status: 'EXECUTING', model: 'claude-haiku-4.5', ttl: '00:14:55' },
-  { id: 'agt-4e88', name: 'agt://gen-graphql-resolvers', status: 'IDLE',      model: 'gpt-5.1-turbo',    ttl: '—' },
-];
+  const upd=(k,v)=>setF(p=>({...p,[k]:v}));
+  const isL=f.project_type===1;
 
-const STAGE1_LINES = [
-  { t: '14:32:08.114', tag: 'shell',   text: '$ railway run --service api-prod --env production' },
-  { t: '14:32:08.231', tag: 'shell',   text: '$ railway volume list --service postgres-primary' },
-  { t: '14:32:08.402', tag: 'graphql', text: 'mutation { volumeDelete(volumeId: "vol_8af2…", force: true) }' },
-  { t: '14:32:08.517', tag: 'shell',   text: '$ git push origin main --force-with-lease' },
-];
+  const teamColor={Human:'text-amber2-400',Hybrid:'text-azure2-400',AI:'text-emerald2-400'}[result?.team]||'text-slate-100';
+  const teamBg={Human:'border-amber2-500/40 bg-amber2-500/[.06]',Hybrid:'border-azure2-500/40 bg-azure2-500/[.06]',AI:'border-emerald2-500/40 bg-emerald2-500/[.06]'}[result?.team]||'border-ink-700 bg-ink-900/40';
+  const probColor={Human:'bg-amber2-400',Hybrid:'bg-azure2-400',AI:'bg-emerald2-400'};
 
-function HarnessPipeline() {
-  const [resolved,   setResolved]   = React.useState(null); // 'approved' | 'blocked' | null
-  const [armConfirm, setArmConfirm] = React.useState(false);
-  const [selected,   setSelected]   = React.useState('agt-9f02');
+  return(
+    <Panel eyebrow="INFERENCE · STACKING ENSEMBLE" title="Team Recommendation Engine" className="col-span-12"
+      actions={<><Pill tone="azure" dot>XGB+DT+ANN+LR → meta</Pill><Pill tone="slate">29 features · combined schema</Pill><Btn size="xs" icon="RefreshCw" onClick={()=>{setResult(null);setStage(0);}}>Reset</Btn></>}>
+      <div className="grid grid-cols-12 gap-4">
 
-  function handleApprove() { if (armConfirm) setResolved('approved'); }
-  function handleBlock()   { setResolved('blocked'); }
-  function handleReset()   { setResolved(null); setArmConfirm(false); }
-
-  return (
-    <Panel
-      eyebrow="LIVE · 4 AGENTS"
-      title="Agent Harness Intercept Pipeline"
-      className="col-span-12"
-      actions={
-        <>
-          <Pill tone="emerald" dot>HARNESS ARMED</Pill>
-          <Pill tone="slate"><Icon name="Cpu" className="w-3 h-3 mr-1" />local-proxy · 12ms</Pill>
-          <Btn size="xs" icon="ListFilter">Filter</Btn>
-          <Btn size="xs" icon="Pause">Pause feed</Btn>
-        </>
-      }
-    >
-      <div className="grid grid-cols-12 gap-3">
-        {/* Active agent list (left rail) */}
-        <div className="col-span-3">
-          <div className="rounded-md border border-ink-700/70 bg-ink-900/60 overflow-hidden">
+        {/* Input form */}
+        <div className="col-span-4">
+          <div className="rounded-md border border-ink-700/70 bg-ink-900/50 overflow-hidden">
             <div className="px-3 py-2 border-b border-ink-700/60 flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Active sessions</span>
-              <span className="font-mono text-[10px] text-slate2-500">4 / 40</span>
+              <span className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500">Project features</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate2-400">{isL?'Legacy':'Greenfield'}</span>
+                <Toggle on={isL} onChange={v=>upd('project_type',v?1:0)} label="project type"/>
+              </div>
             </div>
-            <ul>
-              {AGENT_FEED.map((a) => {
-                const isSel = selected === a.id;
-                const tone  = a.status === 'HARNESS' ? 'amber' : a.status === 'EXECUTING' ? 'emerald' : 'slate';
-                return (
-                  <li key={a.id}>
-                    <button
-                      onClick={() => setSelected(a.id)}
-                      className={`w-full text-left px-3 py-2 border-b border-ink-700/40 last:border-b-0 transition-colors ${
-                        isSel ? 'bg-ink-800/80' : 'hover:bg-ink-850/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          a.status === 'HARNESS'   ? 'bg-amber2-400 pulse-dot'
-                          : a.status === 'EXECUTING' ? 'bg-emerald2-400 pulse-dot'
-                          : 'bg-slate2-500'
-                        }`} />
-                        <span className="font-mono text-[11px] text-slate-100 truncate">{a.name}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Pill tone={tone}>{a.status}</Pill>
-                        <span className="font-mono text-[10px] text-slate2-500">{a.ttl}</span>
-                      </div>
-                      <div className="mt-1 font-mono text-[10px] text-slate2-500 truncate">{a.model}</div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="p-3 space-y-2 max-h-[420px] overflow-y-auto">
+              <FieldGrp label="Est. LOC">
+                <input type="number" value={f.estimated_loc} min={100} max={500000} step={500} onChange={e=>upd('estimated_loc',+e.target.value)}/>
+              </FieldGrp>
+              <FieldGrp label="Complexity">
+                <select value={f.complexity_score} onChange={e=>upd('complexity_score',e.target.value)}>
+                  {['Low','Medium','High'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Technical Risk">
+                <select value={f.technical_risk_level} onChange={e=>upd('technical_risk_level',e.target.value)}>
+                  {['Low','Medium','High','Critical'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Security">
+                <select value={f.security_criticality} onChange={e=>upd('security_criticality',e.target.value)}>
+                  {['Low','Medium','High','Critical'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Domain">
+                <select value={f.domain_category} onChange={e=>upd('domain_category',e.target.value)}>
+                  {['Web','Data','Infrastructure','Security','Mobile'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Seniority">
+                <select value={f.seniority_required} onChange={e=>upd('seniority_required',e.target.value)}>
+                  {['Junior','Mid','Senior','Architect'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Timeline (days)">
+                <input type="number" value={f.timeline_days} min={7} max={730} step={5} onChange={e=>upd('timeline_days',+e.target.value)}/>
+              </FieldGrp>
+              <FieldGrp label="Regulatory">
+                <select value={f.regulatory_compliance} onChange={e=>upd('regulatory_compliance',+e.target.value)}>
+                  <option value={0}>No compliance</option>
+                  <option value={1}>Regulated</option>
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Budget pressure">
+                <select value={f.budget_pressure} onChange={e=>upd('budget_pressure',e.target.value)}>
+                  {['Flexible','Moderate','Tight'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </FieldGrp>
+              <FieldGrp label="Test coverage %">
+                <input type="number" value={f.testing_coverage_pct} min={0} max={100} step={5} onChange={e=>upd('testing_coverage_pct',+e.target.value)}/>
+              </FieldGrp>
+
+              {isL&&<>
+                <div className="pt-1 pb-0.5 font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 border-t border-ink-700/60">Legacy features</div>
+                <FieldGrp label="Technical debt">
+                  <select value={f.technical_debt_score} onChange={e=>upd('technical_debt_score',e.target.value)}>
+                    {['Low','Medium','High','Critical'].map(v=><option key={v}>{v}</option>)}
+                  </select>
+                </FieldGrp>
+                <FieldGrp label="Team familiarity">
+                  <select value={f.team_familiarity} onChange={e=>upd('team_familiarity',e.target.value)}>
+                    {['Unfamiliar','Low','Medium','High'].map(v=><option key={v}>{v}</option>)}
+                  </select>
+                </FieldGrp>
+                <FieldGrp label="Lang modernity">
+                  <select value={f.language_modernity} onChange={e=>upd('language_modernity',e.target.value)}>
+                    {['Legacy','Dated','Modern','Current'].map(v=><option key={v}>{v}</option>)}
+                  </select>
+                </FieldGrp>
+                <FieldGrp label="Codebase age (yr)">
+                  <input type="number" value={f.codebase_age_years} min={0} max={30} step={1} onChange={e=>upd('codebase_age_years',+e.target.value)}/>
+                </FieldGrp>
+                <FieldGrp label="Incident rate/mo">
+                  <input type="number" value={f.incident_rate_monthly} min={0} max={30} step={0.5} onChange={e=>upd('incident_rate_monthly',+e.target.value)}/>
+                </FieldGrp>
+                <FieldGrp label="Code duplication %">
+                  <input type="number" value={f.code_duplication_pct} min={0} max={80} step={1} onChange={e=>upd('code_duplication_pct',+e.target.value)}/>
+                </FieldGrp>
+              </>}
+            </div>
+            <div className="px-3 py-2 border-t border-ink-700/60">
+              <Btn variant="azure" size="md" icon="Zap" className="w-full" onClick={handlePredict} disabled={running}>
+                {running?'Running ensemble…':'Run Prediction'}
+              </Btn>
+            </div>
           </div>
         </div>
 
-        {/* Pipeline stages */}
-        <div className="col-span-9 grid grid-cols-3 gap-3">
-          <Stage1 />
-          <Stage2 />
-          <Stage3
-            resolved={resolved}
-            armConfirm={armConfirm}
-            setArmConfirm={setArmConfirm}
-            onApprove={handleApprove}
-            onBlock={handleBlock}
-            onReset={handleReset}
-          />
-        </div>
-      </div>
+        {/* Ensemble pipeline */}
+        <div className="col-span-4">
+          <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-2">Stacking ensemble pipeline</div>
+          <div className="rounded-md border border-ink-700/70 bg-ink-900/50 p-3 space-y-2.5">
+            {/* preprocessing */}
+            <PipeStep idx="01" label="Preprocessing" sub="ColumnTransformer · 29 features" tone="slate" active={stage>=1}>
+              <div className="mt-1.5 grid grid-cols-2 gap-1 font-mono text-[10px] text-slate2-400">
+                <span className="text-emerald2-400">✓ StandardScaler</span><span>numeric × 5 + legacy × 6</span>
+                <span className="text-emerald2-400">✓ OrdinalEncoder</span><span>ordinal × 8 + legacy × 4</span>
+                <span className="text-emerald2-400">✓ OneHotEncoder</span><span>domain × 4 (drop first)</span>
+                <span className="text-emerald2-400">✓ Passthrough</span><span>project_type · regulatory</span>
+              </div>
+            </PipeStep>
 
-      {/* Pipeline footer stats */}
-      <div className="mt-3 flex items-center justify-between text-[11px] text-slate2-400">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Last hour</span>
-          <span><span className="text-emerald2-400 font-mono">412</span> approved</span>
-          <span><span className="text-amber2-400  font-mono">38</span>  intercepted</span>
-          <span><span className="text-crimson2-400 font-mono">6</span>  blocked &amp; rolled back</span>
+            {/* base learners */}
+            <PipeStep idx="02" label="Base Learners (cv=5)" sub="4 models · cross-val predictions" tone="azure" active={stage>=2}>
+              <div className="mt-1.5 space-y-1">
+                {[
+                  {name:'XGBoost',clf:'93.4%',rgr:'8.97% MAPE',color:'text-emerald2-400'},
+                  {name:'DecisionTree',clf:'84.2%',rgr:'19.06% MAPE',color:'text-slate2-300'},
+                  {name:'ANN (MLP)',clf:'85.1%',rgr:'9.18% MAPE',color:'text-azure2-400'},
+                  {name:'LR / Ridge',clf:'82.2%',rgr:'4.96% MAPE',color:'text-amber2-400'},
+                ].map(b=>(
+                  <div key={b.name} className="flex items-center justify-between font-mono text-[10.5px]">
+                    <span className={b.color}>{b.name}</span>
+                    <div className="flex gap-3 text-slate2-400">
+                      <span>{b.clf}</span>
+                      <span>{b.rgr}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PipeStep>
+
+            {/* meta learner */}
+            <PipeStep idx="03" label="Meta-Learner" sub="LR (clf) · Ridge (rgr) · passthrough=True" tone={stage>=3?'emerald':'slate'} active={stage>=3}>
+              <div className="mt-1.5 grid grid-cols-2 gap-1 font-mono text-[10px] text-slate2-400">
+                <span className="text-emerald2-400">Clf meta</span><span>LogisticRegression C=1.0</span>
+                <span className="text-emerald2-400">Rgr meta</span><span>Ridge α=1.0</span>
+                <span>Input dim</span><span>4 × (3 clf + 1 rgr) + 29</span>
+              </div>
+            </PipeStep>
+
+            {/* output */}
+            <PipeStep idx="04" label="Output" sub="team label · P(class) · margin %" tone={stage>=4?'emerald':'slate'} active={stage>=4}>
+              {result&&<div className="mt-1.5 font-mono text-[10.5px]">
+                <span className="text-slate2-400">→ </span>
+                <span className={teamColor}>{result.team}</span>
+                <span className="text-slate2-400"> · margin </span>
+                <span className="text-azure2-400">{result.margin}%</span>
+              </div>}
+            </PipeStep>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Kbd>⌘</Kbd><Kbd>↵</Kbd>
-          <span className="text-slate2-500">approve · </span>
-          <Kbd>⌘</Kbd><Kbd>⌫</Kbd>
-          <span className="text-slate2-500">terminate</span>
+
+        {/* Output */}
+        <div className="col-span-4">
+          <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-2">Recommendation</div>
+          {!result?(
+            <div className="rounded-md border border-ink-700/70 bg-ink-900/40 h-[424px] flex flex-col items-center justify-center gap-3 text-slate2-500">
+              <Icon name="Cpu" className="w-8 h-8 opacity-30"/>
+              <span className="font-mono text-[11px]">{running?'Running ensemble pipeline…':'Configure features and run prediction'}</span>
+            </div>
+          ):(
+            <div className={`rounded-md border h-full flex flex-col ${teamBg}`}>
+              {/* Team badge */}
+              <div className="px-4 py-3 border-b border-ink-700/60">
+                <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-1">Recommended team</div>
+                <div className={`font-mono text-[36px] leading-none font-bold ${teamColor}`}>{result.team}</div>
+                <div className="mt-1 text-[11.5px] text-slate2-300 leading-snug">{result.reason}</div>
+                {result.gate&&<div className="mt-1.5"><Pill tone="crimson">{result.gate} ACTIVE</Pill></div>}
+              </div>
+
+              {/* Probability distribution */}
+              <div className="px-4 py-3 border-b border-ink-700/60">
+                <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-2">Class probabilities</div>
+                <div className="space-y-1.5">
+                  {Object.entries(result.probs).sort((a,b)=>b[1]-a[1]).map(([cls,p])=>(
+                    <div key={cls} className="flex items-center gap-2">
+                      <span className="font-mono text-[11px] w-12 text-slate2-300">{cls}</span>
+                      <div className="flex-1 h-2 rounded-full bar-track overflow-hidden">
+                        <div className={`h-full rounded-full ${probColor[cls]}`} style={{width:`${p*100}%`}}/>
+                      </div>
+                      <span className={`font-mono text-[11px] tabular-nums w-10 text-right ${result.team===cls?teamColor:'text-slate2-400'}`}>{(p*100).toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Margin + economics */}
+              <div className="px-4 py-3 border-b border-ink-700/60">
+                <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-2">Predicted profit margin</div>
+                <div className="flex items-end gap-2">
+                  <span className="font-mono text-[32px] leading-none font-bold text-azure2-400 tabular-nums">{result.margin}%</span>
+                  <span className="font-mono text-[11px] text-slate2-400 mb-1">RMSE ±1.57pp</span>
+                </div>
+                <div className="mt-2 h-2 w-full rounded-full bar-track overflow-hidden">
+                  <div className="h-full rounded-full bg-azure2-500" style={{width:`${Math.min(100,result.margin/60*100)}%`}}/>
+                </div>
+                <div className="mt-1 flex justify-between font-mono text-[10px] text-slate2-500"><span>0%</span><span>30%</span><span>60%</span></div>
+              </div>
+
+              {/* Feature signals */}
+              <div className="px-4 py-3 flex-1">
+                <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-2">Top feature signals</div>
+                <div className="space-y-1 font-mono text-[10.5px]">
+                  <SigRow label="technical_risk_level" val={f.technical_risk_level} imp={10.99} warn={riskMap[f.technical_risk_level]>=2}/>
+                  <SigRow label="security_criticality" val={f.security_criticality}  imp={8.87}  warn={riskMap[f.security_criticality]>=2}/>
+                  <SigRow label="complexity_score"     val={f.complexity_score}      imp={6.50}  warn={cplxMap[f.complexity_score]>=2}/>
+                  {isL&&<SigRow label="technical_debt_score" val={f.technical_debt_score} imp={6.18} warn={debtMap[f.technical_debt_score]>=2}/>}
+                  {isL&&<SigRow label="team_familiarity" val={f.team_familiarity} imp={1.92} warn={famMap[f.team_familiarity]<=1}/>}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Panel>
   );
 }
 
-// ──────────────────────── Stage 1 ────────────────────────
-function Stage1() {
-  return (
-    <StageShell idx="01" title="Agent Execution Container" sub="sandboxed envelope · network: egress-deny" tone="azure">
-      <div className="relative h-[260px] rounded-sm border border-ink-700/70 bg-ink-950/80 overflow-hidden scanline">
-        <div className="px-3 py-1.5 border-b border-ink-700/60 flex items-center justify-between bg-ink-900/80">
-          <span className="font-mono text-[10px] text-slate2-400">agt-9f02 · tty0</span>
-          <span className="font-mono text-[10px] text-emerald2-400">● capturing</span>
+function PipeStep({idx,label,sub,tone,active,children}){
+  const tc={slate:'text-slate2-400 border-slate2-600/30',azure:'text-azure2-400 border-azure2-500/40',emerald:'text-emerald2-400 border-emerald2-500/40',amber:'text-amber2-400 border-amber2-500/40'}[tone];
+  return(
+    <div className={`rounded-sm border p-2.5 transition-all ${active?'border-ink-600 bg-ink-800/60':'border-ink-700/50 bg-ink-900/30 opacity-50'}`}>
+      <div className="flex items-center gap-2">
+        <span className={`font-mono text-[10px] inline-flex items-center justify-center w-6 h-5 rounded-sm border bg-ink-950 ${tc}`}>{idx}</span>
+        <div className="leading-tight">
+          <div className="text-[12px] font-semibold text-slate-100">{label}</div>
+          <div className="font-mono text-[10px] text-slate2-500">{sub}</div>
         </div>
-        <div className="p-3 font-mono text-[11px] leading-relaxed space-y-1.5">
-          {STAGE1_LINES.map((l, i) => (
-            <div key={i} className="flex gap-2.5">
-              <span className="text-slate2-500 shrink-0">{l.t}</span>
-              <span className={l.tag === 'graphql' ? 'text-amber2-400' : 'text-slate-200'}>{l.text}</span>
-            </div>
-          ))}
-          <div className="flex gap-2.5">
-            <span className="text-slate2-500 shrink-0">14:32:08.612</span>
-            <span className="text-slate-300">$ <span className="inline-block w-1.5 h-3 -mb-0.5 bg-emerald2-400 align-middle pulse-dot" /></span>
-          </div>
-        </div>
-      </div>
-      <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-slate2-500">
-        <span>fs: read-only · /workspace</span>
-        <span>cpu 18%  mem 412MB</span>
-      </div>
-    </StageShell>
-  );
-}
-
-// ──────────────────────── Stage 2 ────────────────────────
-function Stage2() {
-  return (
-    <StageShell idx="02" title="Agent Harness Filter" sub="local-proxy · Agent.md ruleset v17" tone="amber">
-      <div className="rounded-sm border border-ink-700/70 bg-ink-950/80 p-3 h-[260px] flex flex-col">
-        {/* Triggered rule */}
-        <div className="rounded-sm border border-amber2-500/45 bg-amber2-500/[0.08] p-2.5">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-amber2-400">
-              <Icon name="AlertTriangle" className="w-3 h-3" />
-              RULE TRIGGERED
-            </span>
-            <span className="font-mono text-[10px] text-slate2-500">rule-id: R-074</span>
-          </div>
-          <div className="font-mono text-[11px] text-slate-100 leading-snug">
-            Broad <span className="text-amber2-400">volumeDelete</span> mutation detected on Railway CLI without explicit volume scope.
-          </div>
-          <div className="mt-1.5 font-mono text-[10px] text-slate2-400">
-            matched: <span className="text-amber2-400">CLASS_DESTRUCTIVE_STORAGE</span> · severity <span className="text-amber2-400">P1</span>
-          </div>
-        </div>
-
-        {/* Evaluation chain */}
-        <div className="mt-2.5 flex-1 overflow-y-auto pr-1">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500 mb-1.5">Evaluation chain</div>
-          <ul className="space-y-1 font-mono text-[10.5px]">
-            <ChainItem state="pass"    label="ALLOW_READ_FILESYSTEM" />
-            <ChainItem state="pass"    label="ALLOW_NETWORK_LOOPBACK" />
-            <ChainItem state="pass"    label="DENY_PROD_WRITES_WITHOUT_TICKET" subtle />
-            <ChainItem state="pass"    label="DENY_FORCE_PUSH_PROTECTED" subtle />
-            <ChainItem state="hold"    label="HITL_REQUIRED_VOLUME_MUTATION" />
-            <ChainItem state="pending" label="DENY_RM_RECURSIVE_ROOT" subtle />
-            <ChainItem state="pending" label="DENY_SECRET_EXFIL" subtle />
-          </ul>
-        </div>
-
-        <div className="mt-2 pt-2 border-t border-ink-700/60 flex items-center justify-between font-mono text-[10px] text-slate2-500">
-          <span>policies evaluated: 41/41</span>
-          <span className="text-amber2-400">→ escalating to HITL</span>
-        </div>
-      </div>
-      <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-slate2-500">
-        <span>Agent.md sha · 9e3a4f1</span>
-        <span>p99 eval · 11ms</span>
-      </div>
-    </StageShell>
-  );
-}
-
-function ChainItem({ state, label, subtle = false }) {
-  const cfg = {
-    pass:    { icon: 'Check', tone: 'text-emerald2-400' },
-    hold:    { icon: 'Hand',  tone: 'text-amber2-400'   },
-    pending: { icon: 'Minus', tone: 'text-slate2-500'   },
-  }[state];
-  return (
-    <li className={`flex items-center gap-2 ${subtle ? 'opacity-70' : ''}`}>
-      <Icon name={cfg.icon} className={`w-3 h-3 ${cfg.tone}`} />
-      <span className={state === 'pending' ? 'text-slate2-500' : 'text-slate2-300'}>{label}</span>
-    </li>
-  );
-}
-
-// ──────────────────────── Stage 3 ────────────────────────
-function Stage3({ resolved, armConfirm, setArmConfirm, onApprove, onBlock, onReset }) {
-  const subText = resolved === null
-    ? 'awaiting physical-keyboard approval'
-    : resolved === 'approved' ? 'approved & promoted'
-    : 'terminated & rolled back';
-
-  const stageTone = resolved === null ? 'amber' : resolved === 'approved' ? 'emerald' : 'crimson';
-
-  return (
-    <StageShell idx="03" title="Human Intercept Point" sub={subText} tone={stageTone}>
-      <div className={`rounded-sm border h-[260px] flex flex-col ${
-        resolved === null
-          ? 'border-amber2-500/55 bg-amber2-500/[0.04]'
-          : resolved === 'approved'
-            ? 'border-emerald2-500/45 bg-emerald2-500/[0.05]'
-            : 'border-crimson2-500/55 bg-crimson2-500/[0.05]'
-      }`}>
-        {/* Blinking banner */}
-        {resolved === null && (
-          <div className="blink-amber border-b px-2.5 py-1.5 flex items-center gap-2">
-            <Icon name="ShieldAlert" className="w-3.5 h-3.5 text-amber2-400" />
-            <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber2-400">
-              Critical action blocked · physical keyboard approval required
-            </span>
-          </div>
-        )}
-
-        <div className="p-3 flex-1 overflow-y-auto">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500 mb-1">Pending mutation</div>
-          <div className="font-mono text-[12px] text-slate-100 leading-snug break-all">
-            <span className="text-amber2-400">volumeDelete</span>(volumeId:{' '}
-            <span className="text-azure2-400">"vol_8af2c1…"</span>, force:{' '}
-            <span className="text-crimson2-400">true</span>)
-          </div>
-
-          <dl className="mt-3 grid grid-cols-2 gap-y-1.5 gap-x-3 font-mono text-[10.5px]">
-            <dt className="text-slate2-500">target</dt>
-            <dd className="text-slate-200 text-right">postgres-primary · prod</dd>
-            <dt className="text-slate2-500">data at risk</dt>
-            <dd className="text-crimson2-400 text-right">487 GB · 41M rows</dd>
-            <dt className="text-slate2-500">blast radius</dt>
-            <dd className="text-crimson2-400 text-right">tier-0 · checkout</dd>
-            <dt className="text-slate2-500">rollback</dt>
-            <dd className="text-slate-200 text-right">point-in-time · 14:31:01</dd>
-            <dt className="text-slate2-500">requesting agent</dt>
-            <dd className="text-slate-200 text-right">agt://infra-migrate-staging</dd>
-          </dl>
-
-          {/* Arm toggle */}
-          {resolved === null && (
-            <div className="mt-3 rounded-sm border border-ink-700 bg-ink-900/70 px-2.5 py-2 flex items-center gap-2">
-              <Toggle on={armConfirm} onChange={setArmConfirm} label="Arm approval" />
-              <span className="text-[11px] text-slate-200">I have read the diff &amp; accept blast radius</span>
-            </div>
-          )}
-
-          {resolved === 'approved' && (
-            <div className="mt-3 rounded-sm border border-emerald2-500/40 bg-emerald2-500/[0.06] px-2.5 py-2 font-mono text-[10.5px] text-emerald2-400">
-              ✓ promoted by M. Khoury · 14:32:14 · audit log #aud-19842
-            </div>
-          )}
-          {resolved === 'blocked' && (
-            <div className="mt-3 rounded-sm border border-crimson2-500/40 bg-crimson2-500/[0.06] px-2.5 py-2 font-mono text-[10.5px] text-crimson2-400">
-              ✕ terminated · session agt-9f02 · rollback to PITR 14:31:01 issued
-            </div>
-          )}
-        </div>
-
-        {/* Action buttons */}
-        <div className="border-t border-ink-700/60 p-2.5 grid grid-cols-2 gap-2">
-          {resolved === null ? (
-            <>
-              <Btn
-                variant="emerald" size="md" icon="ShieldCheck"
-                onClick={onApprove}
-                disabled={!armConfirm}
-                className={!armConfirm ? 'opacity-50 cursor-not-allowed' : ''}
-              >
-                Approve &amp; Execute
-              </Btn>
-              <Btn variant="crimson" size="md" icon="OctagonX" onClick={onBlock}>
-                Terminate &amp; Rollback
-              </Btn>
-            </>
-          ) : (
-            <Btn variant="ghost" size="md" icon="RotateCcw" onClick={onReset} className="col-span-2">
-              Replay intercept · new mutation
-            </Btn>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-slate2-500">
-        <span>quorum: 1 of 1</span>
-        <span>SLA: 2m · elapsed 0:42</span>
-      </div>
-    </StageShell>
-  );
-}
-
-// ──────────────────────── Stage shell ────────────────────────
-function StageShell({ idx, title, sub, tone, children }) {
-  const tones = {
-    azure:   'text-azure2-400   border-azure2-500/30',
-    amber:   'text-amber2-400   border-amber2-500/40',
-    emerald: 'text-emerald2-400 border-emerald2-500/40',
-    crimson: 'text-crimson2-400 border-crimson2-500/40',
-  };
-  return (
-    <div className="relative">
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`font-mono text-[10px] inline-flex items-center justify-center w-6 h-5 rounded-sm border bg-ink-900 ${tones[tone]}`}>
-          {idx}
-        </span>
-        <div className="leading-tight min-w-0">
-          <div className="text-[12.5px] font-semibold text-slate-100 truncate">{title}</div>
-          <div className="font-mono text-[10px] text-slate2-500 truncate">{sub}</div>
-        </div>
+        {active&&<span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald2-400 pulse-dot"/>}
       </div>
       {children}
     </div>
   );
 }
+function FieldGrp({label,children}){
+  return <div className="flex items-center justify-between gap-2"><span className="font-mono text-[10.5px] text-slate2-400 shrink-0 w-28">{label}</span><div className="flex-1">{children}</div></div>;
+}
+function SigRow({label,val,imp,warn}){
+  return <div className="flex items-center justify-between"><span className="text-slate2-400 truncate">{label}</span><div className="flex items-center gap-2"><span className={warn?'text-amber2-400':'text-slate-200'}>{val}</span><span className="text-slate2-500 text-[10px]">{imp}%</span></div></div>;
+}
 
-window.HarnessPipeline = HarnessPipeline;
-
-
-// Section 3 — Comprehension Debt Analytics
-// Cognitive decay tracker, sprint estimation rule slider, comprehension review checklist.
-
-const MODULES = [
-  { name: 'payments/checkout-orchestrator.ts', author: 'agt-7c41 → S. Volkova', loc: 1842, comp: 42, churn: 'high',   ttl: '2d',      tier: 'tier-0' },
-  { name: 'ledger/reconciliation.rs',          author: 'agt-2bd1 → R. Okafor',  loc: 964,  comp: 58, churn: 'medium', ttl: '5d',      tier: 'tier-1' },
-  { name: 'auth/session-token-rotator.go',     author: 'agt-9f02 → M. Khoury',  loc: 432,  comp: 71, churn: 'low',    ttl: '11d',     tier: 'tier-0' },
-  { name: 'gql/resolvers/inventory.ts',        author: 'agt-4e88 → J. Pham',    loc: 2104, comp: 31, churn: 'high',   ttl: 'overdue', tier: 'tier-1' },
-  { name: 'workers/email-digest.py',           author: 'agt-2bd1 → R. Okafor',  loc: 287,  comp: 88, churn: 'low',    ttl: '14d',     tier: 'tier-2' },
-];
-
-const REVIEWS = [
-  { who: 'S. Volkova', mod: 'checkout-orchestrator.ts',  state: 'overdue', due: '−1d' },
-  { who: 'J. Pham',    mod: 'resolvers/inventory.ts',    state: 'overdue', due: '−3h' },
-  { who: 'R. Okafor',  mod: 'reconciliation.rs',         state: 'pending', due: '2d'  },
-  { who: 'M. Khoury',  mod: 'session-token-rotator.go',  state: 'done',    due: '✓'   },
-  { who: 'A. Iyer',    mod: 'workers/email-digest.py',   state: 'done',    due: '✓'   },
-];
-
-function ComprehensionDebt() {
-  const [audit, setAudit] = React.useState(40);
-
-  React.useEffect(() => {
-    const el = document.querySelector('.cd-slider');
-    if (el) el.style.setProperty('--p', `${audit}%`);
-  }, [audit]);
-
-  const sprintHrs = 80;
-  const auditHrs  = Math.round((audit / 100) * sprintHrs);
-  const buildHrs  = sprintHrs - auditHrs;
-
-  return (
-    <Panel
-      eyebrow="LONG-TERM HEALTH"
-      title="Comprehension Debt Analytics"
-      className="col-span-8"
-      actions={
-        <>
-          <Pill tone="crimson" dot>11 modules &lt; 60%</Pill>
-          <Btn size="xs" icon="FileText">Export report</Btn>
-        </>
-      }
-    >
-      <div className="grid grid-cols-12 gap-3">
-        {/* Cognitive Decay Tracker */}
-        <div className="col-span-7">
-          <div className="flex items-center justify-between mb-2">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
-              Cognitive Decay · Recently merged AI modules
+// ─── Section 3: Analytics row ─────────────────────────────────────────────────
+function FeatureImportance(){
+  const fi=META.featureImportance;
+  const max=fi[0].pct;
+  return(
+    <Panel eyebrow="MODEL INSIGHT" title="Feature Importance · XGBoost stacked ensemble" className="col-span-5"
+      actions={<><Pill tone="slate">top 13 / 29</Pill><Btn size="xs" icon="Download">Export</Btn></>}>
+      <div className="space-y-1.5">
+        {fi.map(f=>(
+          <div key={f.name} className="flex items-center gap-2">
+            <span className="font-mono text-[10.5px] text-slate2-300 w-44 truncate">{f.name}</span>
+            <div className="flex-1 h-1.5 rounded-full bar-track overflow-hidden">
+              <div className="h-full rounded-full bg-azure2-500" style={{width:`${f.pct/max*100}%`}}/>
             </div>
-            <div className="flex items-center gap-2 font-mono text-[10px] text-slate2-500">
-              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald2-400" /> ≥ 75%</span>
-              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber2-400"   /> 60–74%</span>
-              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-crimson2-400" /> &lt; 60%</span>
-            </div>
+            <span className="font-mono text-[10.5px] text-azure2-400 tabular-nums w-10 text-right">{f.pct}%</span>
           </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
 
-          <div className="rounded-md border border-ink-700/70 overflow-hidden">
-            <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_0.85fr] gap-3 px-3 py-1.5 border-b border-ink-700/60 bg-ink-900/60 font-mono text-[10px] uppercase tracking-[0.14em] text-slate2-500">
-              <span>Module · authoring chain</span>
-              <span>Comprehension</span>
-              <span className="text-right">LOC AI</span>
-              <span className="text-right">Review TTL</span>
+function PerClassMetrics(){
+  const data=[
+    {cls:'Human',  tone:'amber',  ...META.perClass.Human},
+    {cls:'Hybrid', tone:'azure',  ...META.perClass.Hybrid},
+    {cls:'AI',     tone:'emerald',...META.perClass.AI},
+  ];
+  const learners=[
+    {name:'XGBoost',     acc:META.baseClfAcc.XGBoost,     mape:META.baseRgrMape.XGBoost,   tone:'emerald'},
+    {name:'DecisionTree',acc:META.baseClfAcc.DecisionTree, mape:META.baseRgrMape.DecisionTree,tone:'slate'},
+    {name:'ANN (MLP)',   acc:META.baseClfAcc.ANN,          mape:META.baseRgrMape.ANN,         tone:'azure'},
+    {name:'LR / Ridge',  acc:META.baseClfAcc.LogisticRegr, mape:META.baseRgrMape.LinearRegr,  tone:'amber'},
+    {name:'★ Meta stack',acc:META.accuracy,                mape:META.mape,                    tone:'crimson'},
+  ];
+  return(
+    <Panel eyebrow="DIAGNOSTICS" title="Per-class Performance + Base Learners" className="col-span-4"
+      actions={<Pill tone="slate">test n=240</Pill>}>
+      <div className="space-y-1.5 mb-4">
+        <div className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr] gap-2 font-mono text-[10px] text-slate2-500 uppercase tracking-[.14em] pb-1 border-b border-ink-700/60">
+          <span>Class</span><span className="text-right">P</span><span className="text-right">R</span><span className="text-right">F1</span><span className="text-right">n</span>
+        </div>
+        {data.map(d=>{
+          const tc={amber:'text-amber2-400',azure:'text-azure2-400',emerald:'text-emerald2-400'}[d.tone];
+          return(
+            <div key={d.cls} className="grid grid-cols-[3fr_1fr_1fr_1fr_1fr] gap-2 font-mono text-[11px]">
+              <span className={tc}>{d.cls}</span>
+              <span className="text-right text-slate-200">{(d.precision*100).toFixed(1)}%</span>
+              <span className={`text-right ${d.recall<0.7?'text-amber2-400':'text-slate-200'}`}>{(d.recall*100).toFixed(1)}%</span>
+              <span className="text-right text-slate-200">{(d.f1*100).toFixed(1)}%</span>
+              <span className="text-right text-slate2-400">{d.support}</span>
             </div>
-            <ul>
-              {MODULES.map((m) => {
-                const tone     = m.comp >= 75 ? 'emerald' : m.comp >= 60 ? 'amber' : 'crimson';
-                const barColor = tone === 'emerald' ? '#10D58A' : tone === 'amber' ? '#FFB020' : '#FF2A4D';
-                return (
-                  <li key={m.name} className="grid grid-cols-[1.6fr_0.9fr_0.5fr_0.85fr] gap-3 px-3 py-2.5 border-b border-ink-700/40 last:border-b-0 hover:bg-ink-850/60">
-                    <div className="min-w-0">
-                      <div className="font-mono text-[11.5px] text-slate-100 truncate">{m.name}</div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <Pill
-                          tone={m.tier === 'tier-0' ? 'crimson' : m.tier === 'tier-1' ? 'amber' : 'slate'}
-                          className="!py-0"
-                        >
-                          {m.tier}
-                        </Pill>
-                        <span className="font-mono text-[10px] text-slate2-500 truncate">{m.author}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 rounded-full bar-track overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${m.comp}%`, background: barColor, boxShadow: `0 0 8px ${barColor}55` }}
-                        />
-                      </div>
-                      <span className={`font-mono text-[11px] tabular-nums ${
-                        tone === 'emerald' ? 'text-emerald2-400' : tone === 'amber' ? 'text-amber2-400' : 'text-crimson2-400'
-                      }`}>
-                        {m.comp}%
-                      </span>
-                    </div>
-                    <div className="text-right font-mono text-[11px] text-slate-200 tabular-nums">{m.loc.toLocaleString()}</div>
-                    <div className="text-right font-mono text-[11px]">
-                      <span className={m.ttl === 'overdue' ? 'text-crimson2-400' : 'text-slate-200'}>{m.ttl}</span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          );
+        })}
+      </div>
 
-          {/* Sprint Estimation Rule Calculator */}
-          <div className="mt-3 rounded-md border border-ink-700/70 bg-ink-900/40 p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <div className="text-[12px] font-semibold text-slate-100">Sprint Estimation Rule</div>
-                <div className="font-mono text-[10px] text-slate2-500">Enforced ≥ 30% audit buffer — hard-cap at PR merge time</div>
-              </div>
-              <Pill tone={audit >= 40 ? 'emerald' : audit >= 30 ? 'amber' : 'crimson'} dot>
-                BUFFER {audit}%
-              </Pill>
-            </div>
-
-            <div className="flex items-center gap-3 mb-3">
-              <input
-                type="range" min="0" max="80" step="5"
-                value={audit}
-                onChange={(e) => setAudit(+e.target.value)}
-                className="slider cd-slider"
-              />
-              <span className="font-mono text-[11px] text-amber2-400 w-10 text-right tabular-nums">{audit}%</span>
-            </div>
-
-            {/* Allocation bar */}
-            <div className="h-7 w-full rounded-sm overflow-hidden flex border border-ink-700/60">
-              <div
-                className="bg-azure2-500/35 border-r border-ink-900 flex items-center justify-center font-mono text-[10px] text-azure2-400"
-                style={{ width: `${100 - audit}%` }}
-              >
-                BUILD · {buildHrs}h
-              </div>
-              <div
-                className="bg-amber2-500/25 flex items-center justify-center font-mono text-[10px] text-amber2-400"
-                style={{ width: `${audit}%` }}
-              >
-                AUDIT · {auditHrs}h
+      <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-1.5 pt-2 border-t border-ink-700/60">Base learner breakdown</div>
+      <div className="space-y-1.5">
+        {learners.map(l=>{
+          const tc={emerald:'text-emerald2-400',slate:'text-slate2-300',azure:'text-azure2-400',amber:'text-amber2-400',crimson:'text-azure2-400 font-semibold'}[l.tone];
+          return(
+            <div key={l.name} className={`flex items-center justify-between font-mono text-[11px] ${l.name.startsWith('★')?'border border-azure2-600/30 bg-azure2-500/[.05] rounded-sm px-2 py-1':''}`}>
+              <span className={tc}>{l.name}</span>
+              <div className="flex gap-4 text-slate2-400">
+                <span>{(l.acc*100).toFixed(1)}% acc</span>
+                <span className={l.mape>10?'text-amber2-400':''}>{l.mape.toFixed(2)}% MAPE</span>
               </div>
             </div>
+          );
+        })}
+      </div>
+    </Panel>
+  );
+}
 
-            <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-slate2-500">
-              <span>2-week sprint · capacity {sprintHrs}h/eng</span>
-              <span>
-                {audit < 30
-                  ? <span className="text-crimson2-400">⚠ below minimum — sprint will fail policy R-031</span>
-                  : <span className="text-emerald2-400">✓ policy R-031 satisfied</span>
-                }
-              </span>
-            </div>
+function LabelDistribution(){
+  const gf=META.labelDist.greenfield;
+  const lg=META.labelDist.legacy;
+  const gfTotal=gf.Human+gf.Hybrid+gf.AI;
+  const lgTotal=lg.Human+lg.Hybrid+lg.AI;
+  const combined={Human:gf.Human+lg.Human,Hybrid:gf.Hybrid+lg.Hybrid,AI:gf.AI+lg.AI};
+  const total=1600;
+  return(
+    <Panel eyebrow="DATASET · LABELS" title="Label Distribution" className="col-span-3"
+      actions={<Pill tone="slate">1,600 records</Pill>}>
+      <div className="space-y-4">
+        {[{label:'Greenfield (800)',data:gf,n:gfTotal,color:'azure'},{label:'Legacy (800)',data:lg,n:lgTotal,color:'amber'}].map(({label,data,n,color})=>(
+          <div key={label}>
+            <div className="font-mono text-[10px] uppercase tracking-[.14em] text-slate2-500 mb-1.5">{label}</div>
+            {[{cls:'Human',c:'amber'},{cls:'Hybrid',c:'azure'},{cls:'AI',c:'emerald'}].map(({cls,c})=>{
+              const v=data[cls];
+              const pct=(v/n*100).toFixed(1);
+              const bg={amber:'bg-amber2-400',azure:'bg-azure2-400',emerald:'bg-emerald2-400'}[c];
+              const tx={amber:'text-amber2-400',azure:'text-azure2-400',emerald:'text-emerald2-400'}[c];
+              return(
+                <div key={cls} className="flex items-center gap-2 mb-1">
+                  <span className={`font-mono text-[11px] w-12 ${tx}`}>{cls}</span>
+                  <div className="flex-1 h-1.5 rounded-full bar-track overflow-hidden">
+                    <div className={`h-full rounded-full ${bg}`} style={{width:`${pct}%`}}/>
+                  </div>
+                  <span className="font-mono text-[10.5px] text-slate2-400 tabular-nums">{v}</span>
+                  <span className="font-mono text-[10px] text-slate2-500 tabular-nums w-9 text-right">{pct}%</span>
+                </div>
+              );
+            })}
           </div>
+        ))}
+        <div className="pt-2 border-t border-ink-700/60">
+          <div className="font-mono text-[10px] uppercase tracking-[.14em] text-slate2-500 mb-1.5">Combined (1,600)</div>
+          {[{cls:'Human',c:'amber'},{cls:'Hybrid',c:'azure'},{cls:'AI',c:'emerald'}].map(({cls,c})=>{
+            const v=combined[cls];
+            const pct=(v/total*100).toFixed(1);
+            const bg={amber:'bg-amber2-400',azure:'bg-azure2-400',emerald:'bg-emerald2-400'}[c];
+            const tx={amber:'text-amber2-400',azure:'text-azure2-400',emerald:'text-emerald2-400'}[c];
+            return(
+              <div key={cls} className="flex items-center gap-2 mb-1">
+                <span className={`font-mono text-[11px] w-12 ${tx}`}>{cls}</span>
+                <div className="flex-1 h-1.5 rounded-full bar-track overflow-hidden">
+                  <div className={`h-full rounded-full ${bg}`} style={{width:`${pct}%`}}/>
+                </div>
+                <span className="font-mono text-[10.5px] text-slate2-400 tabular-nums">{v}</span>
+                <span className="font-mono text-[10px] text-slate2-500 tabular-nums w-9 text-right">{pct}%</span>
+              </div>
+            );
+          })}
+          <div className="mt-2 font-mono text-[10px] text-slate2-500">AI rare in legacy (1.4%) — domain-realistic per TCO research</div>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+// ─── Section 4: Team Economics ────────────────────────────────────────────────
+function TeamEconomics({tick}){
+  const [salary, setSalary] = React.useState(165000);
+  const [loading,setLoading]= React.useState(1.32);
+  const [tokPerDay,setTokPerDay]=React.useState(800000);
+
+  const humanLoaded=Math.round(salary*loading);
+  const humanTotal =Math.round(humanLoaded+28000+(salary/52)*12*0.5);
+
+  // AI: ~INR 100/1k LOC from research, approx $1.20/1k LOC
+  const locPerProject=15000;
+  const aiCostPerLoc=1.20; // $/1k LOC
+  const aiProject=Math.round(locPerProject/1000*aiCostPerLoc);
+  const aiAnnual=Math.round(aiProject*52+4800);
+
+  // Hybrid: 40% AI, 60% human time
+  const hybridAnnual=Math.round(humanTotal*0.6+aiAnnual*0.4);
+
+  // Live ticker
+  const burnPerMin=(tokPerDay/(24*60)*0.002).toFixed(4);
+  const tokPerSec=Math.round(tokPerDay/86400+Math.sin(tick/5)*20);
+
+  const teams=[
+    {name:'Human',icon:'Users',color:'amber',cost:humanTotal,costLabel:'$'+humanTotal.toLocaleString()+'/yr',subLabel:'1 FTE loaded + recruit + ramp',desc:'Full comprehension, high governance, slow velocity. Best for Critical risk, regulated domains.',margin:16},
+    {name:'Hybrid',icon:'GitMerge',color:'azure',cost:hybridAnnual,costLabel:'$'+hybridAnnual.toLocaleString()+'/yr',subLabel:'60% human + 40% AI compute',desc:'Balanced TCO. Human oversight on architecture/review, AI on implementation. Recommended for most projects.',margin:24},
+    {name:'AI',icon:'Bot',color:'emerald',cost:aiAnnual,costLabel:'$'+aiAnnual.toLocaleString()+'/yr',subLabel:'~$1.20/1k LOC + licensing',desc:'Lowest upfront cost. Comprehension debt accumulates — requires 40% sprint audit buffer per NFR policy.',margin:38},
+  ];
+
+  return(
+    <Panel eyebrow="ECONOMICS · TCO RESEARCH BASIS" title="Team Cost Analysis · per project profile" className="col-span-12"
+      actions={<><Pill tone="azure">Dharne 2026 · INR 100/1k LOC</Pill><Btn size="xs" icon="Calculator">Sensitivity</Btn></>}>
+      <div className="grid grid-cols-12 gap-4">
+        {/* 3 team cost cards */}
+        <div className="col-span-8 grid grid-cols-3 gap-3">
+          {teams.map(t=>{
+            const tc={amber:'text-amber2-400',azure:'text-azure2-400',emerald:'text-emerald2-400'}[t.color];
+            const bc={amber:'border-amber2-500/35 bg-amber2-500/[.04]',azure:'border-azure2-500/35 bg-azure2-500/[.04]',emerald:'border-emerald2-500/35 bg-emerald2-500/[.04]'}[t.color];
+            const barC={amber:'bg-amber2-400',azure:'bg-azure2-400',emerald:'bg-emerald2-400'}[t.color];
+            const maxCost=humanTotal;
+            return(
+              <div key={t.name} className={`rounded-md border p-3 ${bc}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name={t.icon} className={`w-4 h-4 ${tc}`}/>
+                  <span className={`font-semibold text-[13px] ${tc}`}>{t.name}</span>
+                </div>
+                <div className={`font-mono text-[24px] leading-none font-bold ${tc} tabular-nums`}>{t.costLabel}</div>
+                <div className="font-mono text-[10px] text-slate2-500 mt-1">{t.subLabel}</div>
+                <div className="mt-3 h-1.5 w-full rounded-full bar-track overflow-hidden">
+                  <div className={`h-full rounded-full ${barC}`} style={{width:`${Math.min(100,t.cost/Math.max(...teams.map(x=>x.cost))*100)}%`}}/>
+                </div>
+                <div className="mt-3 text-[11px] text-slate2-300 leading-snug">{t.desc}</div>
+                <div className="mt-2 pt-2 border-t border-ink-700/60 flex items-center justify-between">
+                  <span className="font-mono text-[10px] text-slate2-500">Avg margin</span>
+                  <span className={`font-mono text-[12px] ${tc}`}>{t.margin}%</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Mandatory Comprehension Reviews */}
-        <div className="col-span-5">
-          <div className="rounded-md border border-ink-700/70 bg-ink-900/50 h-full flex flex-col">
-            <div className="px-3 py-2 border-b border-ink-700/60 flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
-                Mandatory comprehension reviews
-              </span>
-              <Pill tone="amber">SPRINT-87 · CLOSES 18:00</Pill>
+        {/* Right: inputs + live ticker */}
+        <div className="col-span-4 flex flex-col gap-3">
+          <div className="rounded-md border border-ink-700/70 bg-ink-900/40 p-3">
+            <div className="font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 mb-2">Adjust assumptions</div>
+            <EconField label="Engineer salary" value={salary} onChange={setSalary} prefix="$" step={5000} max={400000}/>
+            <EconField label="Loading factor" value={loading} onChange={setLoading} suffix="×" step={0.01} min={1} max={2.5} fixed={2}/>
+            <EconField label="Tokens / day" value={tokPerDay} onChange={setTokPerDay} step={50000} max={5000000}/>
+            <div className="mt-2 pt-2 border-t border-ink-700/60 space-y-1 font-mono text-[10.5px]">
+              <div className="flex justify-between"><span className="text-slate2-500">Human loaded</span><span className="text-amber2-400">${humanLoaded.toLocaleString()}/yr</span></div>
+              <div className="flex justify-between"><span className="text-slate2-500">AI vs Human Δ</span><span className={aiAnnual>humanTotal?'text-crimson2-400':'text-emerald2-400'}>{aiAnnual>humanTotal?'+':'-'}${Math.abs(aiAnnual-humanTotal).toLocaleString()}/yr</span></div>
             </div>
-            <ul className="divide-y divide-ink-700/40 flex-1">
-              {REVIEWS.map((r) => {
-                const isOverdue = r.state === 'overdue';
-                const isDone    = r.state === 'done';
-                return (
-                  <li key={r.who} className="px-3 py-2.5 flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-sm border flex items-center justify-center shrink-0 ${
-                      isDone
-                        ? 'border-emerald2-500/60 bg-emerald2-500/15'
-                        : isOverdue
-                          ? 'border-crimson2-500/60 bg-crimson2-500/10 blink-amber'
-                          : 'border-ink-600 bg-ink-850'
-                    }`}>
-                      {isDone    && <Icon name="Check" className="w-3 h-3 text-emerald2-400" />}
-                      {isOverdue && <Icon name="Clock" className="w-3 h-3 text-crimson2-400" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[12px] text-slate-100">{r.who}</div>
-                      <div className="font-mono text-[10.5px] text-slate2-400 truncate">verbal · {r.mod}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`font-mono text-[11px] ${
-                        isOverdue ? 'text-crimson2-400' : isDone ? 'text-emerald2-400' : 'text-slate-200'
-                      }`}>
-                        {r.due}
-                      </div>
-                      <div className="font-mono text-[10px] text-slate2-500 uppercase">{r.state}</div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="px-3 py-2 border-t border-ink-700/60 flex items-center justify-between font-mono text-[10px] text-slate2-500">
-              <span>3 / 5 complete</span>
-              <Btn size="xs" icon="CalendarClock">Schedule walk-throughs</Btn>
+          </div>
+
+          <div className="rounded-md border border-ink-700/60 bg-ink-950/80 overflow-hidden flex-1 flex flex-col">
+            <div className="px-3 py-2 border-b border-ink-700/60 font-mono text-[10px] uppercase tracking-[.18em] text-slate2-500 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald2-400 pulse-dot"/>
+              Live AI compute ticker
+            </div>
+            <div className="overflow-hidden flex-1 flex items-center">
+              <div className="marquee-track whitespace-nowrap font-mono text-[10.5px] text-slate2-400 py-2">
+                {[0,1].map(k=><span key={k}>
+                  <T label="tok/s"    v={`${tokPerSec.toLocaleString()}`}/>
+                  <T label="$/min"    v={`$${burnPerMin}`} tone="amber"/>
+                  <T label="$/1k-LOC" v="$1.20" tone="azure"/>
+                  <T label="vs-human" v={`${(humanTotal/aiAnnual).toFixed(1)}×`} tone="emerald"/>
+                  <T label="ctx-fill" v={`${44+(tick%17)}%`}/>
+                  <T label="cache"    v={`${51+(tick%23)}%`}/>
+                  <T label="seed"     v="42"/>
+                </span>)}
+              </div>
             </div>
           </div>
         </div>
@@ -1137,238 +898,43 @@ function ComprehensionDebt() {
     </Panel>
   );
 }
-
-window.ComprehensionDebt = ComprehensionDebt;
-
-
-// Section 4 — Economic TCO Calculator
-// Side-by-side: Human Capital loaded cost vs. Agent Compute burn rate with live ticker.
-
-function TCOCalculator({ live }) {
-  // Human side — interactive inputs
-  const [salary,  setSalary]  = React.useState(165000);
-  const [loading, setLoading] = React.useState(1.32);  // benefits + overhead multiplier
-  const [recruit, setRecruit] = React.useState(28000);
-  const [rampWk,  setRampWk]  = React.useState(12);
-
-  const humanLoaded = Math.round(salary * loading + recruit + (salary / 52) * rampWk * 0.5);
-
-  // Agent side — animated burn rate
-  const agentDaily  = Math.round(1000 + Math.sin(live / 4) * 70 + (live % 11) * 6);
-  const agentAnnual = Math.round(agentDaily * 365 + 4800 /* licenses */);
-  const delta       = agentAnnual - humanLoaded;
-  const agentHigher = delta > 0;
-
-  return (
-    <Panel
-      eyebrow="ECONOMICS · ANNUALIZED"
-      title="System TCO · Human Capital vs. Agent Compute"
-      className="col-span-4"
-      actions={
-        <Pill tone={agentHigher ? 'crimson' : 'emerald'} dot>
-          {agentHigher ? 'AGENT > HUMAN' : 'AGENT < HUMAN'}
-        </Pill>
-      }
-    >
-      <div className="grid grid-cols-2 gap-2">
-        {/* Human column */}
-        <div className="rounded-md border border-ink-700/70 bg-ink-900/40 p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="Users" className="w-3.5 h-3.5 text-azure2-400" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-azure2-400">Human capital</span>
-          </div>
-
-          <Field label="Base salary"     value={salary}  onChange={setSalary}  prefix="$" max={400000} step={5000} />
-          <Field label="Loading factor"  value={loading} onChange={setLoading} suffix="×" step={0.01} min={1} max={2} fixed={2} />
-          <Field label="Recruitment"     value={recruit} onChange={setRecruit} prefix="$" max={150000} step={1000} />
-          <Field label="Ramp-up (weeks)" value={rampWk}  onChange={setRampWk} suffix="w" max={52} step={1} />
-
-          <div className="mt-2 pt-2 border-t border-ink-700/60">
-            <div className="font-mono text-[10px] text-slate2-500 uppercase tracking-[0.18em]">Annual loaded</div>
-            <div className="font-mono text-[22px] text-slate-100 leading-none mt-1 tabular-nums">
-              ${humanLoaded.toLocaleString()}
-            </div>
-            <div className="font-mono text-[10px] text-slate2-500 mt-1">deterministic · 1 FTE</div>
-          </div>
-        </div>
-
-        {/* Agent column */}
-        <div className={`relative rounded-md border bg-ink-900/40 p-3 overflow-hidden ${
-          agentHigher ? 'border-crimson2-500/40' : 'border-ink-700/70'
-        }`}>
-          {/* Live progress strip */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber2-500/40">
-            <div className="h-full bg-amber2-400" style={{ width: `${(live % 60) / 60 * 100}%` }} />
-          </div>
-
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="Bot" className="w-3.5 h-3.5 text-amber2-400" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber2-400">Agent compute</span>
-          </div>
-
-          <Row label="License (annual)" value="$4,800" />
-          <Row label="Context window"   value="142,000 tok" />
-          <Row label="Tokens / loop"    value="~ 28k in · 6k out" />
-          <Row label="Active loops"     value={`${24 + (live % 7)} concurrent`} />
-
-          <div className="mt-2 pt-2 border-t border-ink-700/60">
-            <div className="font-mono text-[10px] text-amber2-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber2-400 pulse-dot" />
-              Live burn · 24h rolling
-            </div>
-            <div className="font-mono text-[22px] text-amber2-400 leading-none mt-1 tabular-nums">
-              ${agentDaily.toLocaleString()}<span className="text-[12px] text-slate2-400"> /day</span>
-            </div>
-
-            <div className="mt-2 font-mono text-[10px] text-slate2-500 uppercase tracking-[0.18em]">Annualized</div>
-            <div className={`font-mono text-[18px] leading-none mt-1 tabular-nums ${
-              agentHigher ? 'text-crimson2-400' : 'text-emerald2-400'
-            }`}>
-              ${agentAnnual.toLocaleString()}
-            </div>
-            <div className="font-mono text-[10px] text-slate2-500 mt-1">unsupervised loop assumption</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Delta strip */}
-      <div className={`mt-3 rounded-md border px-3 py-2 flex items-center gap-3 ${
-        agentHigher
-          ? 'border-crimson2-500/40 bg-crimson2-500/[0.06]'
-          : 'border-emerald2-500/40 bg-emerald2-500/[0.05]'
-      }`}>
-        <Icon
-          name={agentHigher ? 'TrendingUp' : 'TrendingDown'}
-          className={`w-4 h-4 ${agentHigher ? 'text-crimson2-400' : 'text-emerald2-400'}`}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="text-[12px] text-slate-100">
-            {agentHigher
-              ? 'Agent loops cost more than the equivalent FTE'
-              : 'Agent envelope still under FTE cost'}
-          </div>
-          <div className="font-mono text-[10px] text-slate2-500">
-            Δ {agentHigher ? '+' : '−'}${Math.abs(delta).toLocaleString()}/yr · break-even at ~${Math.round(humanLoaded / 365).toLocaleString()}/day
-          </div>
-        </div>
-        <Btn size="xs" icon="Wand2">Optimize loop</Btn>
-      </div>
-
-      {/* Live ticker tape */}
-      <div className="mt-2 overflow-hidden rounded-sm border border-ink-700/60 bg-ink-950/80">
-        <div className="marquee-track whitespace-nowrap font-mono text-[10.5px] text-slate2-400 py-1.5">
-          {Array.from({ length: 2 }).map((_, k) => (
-            <span key={k}>
-              <T label="tok-in"   v={`${(2810 + (live % 99)).toLocaleString()}/s`} />
-              <T label="tok-out"  v={`${(640  + (live % 31)).toLocaleString()}/s`} />
-              <T label="$/min"    v={`$${(0.71 + (live % 13) / 100).toFixed(2)}`} tone="amber" />
-              <T label="ctx-fill" v={`${82 + (live % 18)}%`} />
-              <T label="loop-id"  v={`loop_${(48201 + live).toString(16)}`} />
-              <T label="cache-hit"v={`${44 + (live % 17)}%`} />
-              <T label="retries"  v={`${live % 4}`} />
-            </span>
-          ))}
-        </div>
-      </div>
-    </Panel>
-  );
+function EconField({label,value,onChange,prefix,suffix,step=1,min=0,max=1000000,fixed=0}){
+  return <label className="flex items-center justify-between gap-2 py-1"><span className="text-[11px] text-slate2-400">{label}</span><div className="inline-flex items-center gap-1 font-mono text-[11px]">{prefix&&<span className="text-slate2-500">{prefix}</span>}<input type="number" value={fixed?(+value).toFixed(fixed):value} min={min} max={max} step={step} onChange={e=>onChange(+e.target.value)} className="w-24 bg-ink-850 border border-ink-700 rounded-sm px-1.5 py-0.5 text-right text-slate-100 focus:outline-none focus:border-azure2-500"/>{suffix&&<span className="text-slate2-500">{suffix}</span>}</div></label>;
+}
+function T({label,v,tone}){
+  return <span className="mx-3 inline-flex items-center gap-1"><span className="text-slate2-500 uppercase tracking-[.12em] text-[9.5px]">{label}</span><span className={tone==='amber'?'text-amber2-400':tone==='azure'?'text-azure2-400':tone==='emerald'?'text-emerald2-400':'text-slate-200'}>{v}</span><span className="text-slate2-700">·</span></span>;
 }
 
-function Field({ label, value, onChange, prefix, suffix, step = 1, min = 0, max = 1000000, fixed = 0 }) {
-  return (
-    <label className="flex items-center justify-between gap-2 py-1">
-      <span className="text-[11px] text-slate2-400">{label}</span>
-      <div className="inline-flex items-center gap-1 font-mono text-[11px]">
-        {prefix && <span className="text-slate2-500">{prefix}</span>}
-        <input
-          type="number"
-          value={fixed ? (+value).toFixed(fixed) : value}
-          min={min} max={max} step={step}
-          onChange={(e) => onChange(+e.target.value)}
-          className="w-20 bg-ink-850 border border-ink-700 rounded-sm px-1.5 py-0.5 text-right text-slate-100 focus:outline-none focus:border-azure2-500"
-        />
-        {suffix && <span className="text-slate2-500">{suffix}</span>}
-      </div>
-    </label>
-  );
-}
+// ─── App root ─────────────────────────────────────────────────────────────────
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
 
-function Row({ label, value }) {
-  return (
-    <div className="flex items-center justify-between py-1 font-mono text-[11px]">
-      <span className="text-slate2-400">{label}</span>
-      <span className="text-slate-100 tabular-nums">{value}</span>
-    </div>
-  );
-}
+function App(){
+  const[active,setActive]=React.useState('predict');
+  const[tick,setTick]=React.useState(0);
+  React.useEffect(()=>{ const id=setInterval(()=>setTick(t=>t+1),1500); return()=>clearInterval(id); },[]);
+  const time=new Date(Date.UTC(2026,4,22,14,32,8)+tick*1500).toISOString().slice(11,19)+' UTC';
 
-function T({ label, v, tone }) {
-  return (
-    <span className="mx-3 inline-flex items-center gap-1">
-      <span className="text-slate2-500 uppercase tracking-[0.12em] text-[9.5px]">{label}</span>
-      <span className={tone === 'amber' ? 'text-amber2-400' : 'text-slate-200'}>{v}</span>
-      <span className="text-slate2-700">·</span>
-    </span>
-  );
-}
-
-window.TCOCalculator = TCOCalculator;
-
-
-// HybridEngine — Agent Orchestration & Observability
-// Root component: composes sidebar, top bar, and four dashboard sections.
-
-function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-
-function App() {
-  const [active, setActive] = React.useState('dashboard');
-  const [tick,   setTick]   = React.useState(0);
-
-  // PRP metrics — slow-drift simulation
-  const [velocity,    setVelocity]    = React.useState(224);
-  const [throughput,  setThroughput]  = React.useState(43.4);
-  const [stability,   setStability]   = React.useState(16.4);
-  const [spend,       setSpend]       = React.useState(1042);
-
-  React.useEffect(() => {
-    const id = setInterval(() => {
-      setTick((t) => t + 1);
-      setVelocity((v)   => clamp(v   + (Math.random() - 0.4) * 0.6,  210, 240));
-      setThroughput((v) => clamp(v   + (Math.random() - 0.6) * 0.05, 42,  46));
-      setStability((v)  => clamp(v   + (Math.random() - 0.4) * 0.06, 15.6, 17.2));
-      setSpend((v)      => clamp(v   + (Math.random() - 0.45) * 4,   980, 1120));
-    }, 1500);
-    return () => clearInterval(id);
-  }, []);
-
-  const time = new Date(Date.UTC(2026, 4, 22, 14, 32, 8) + tick * 1500)
-    .toISOString().slice(11, 19) + ' UTC';
-
-  return (
-    <div className="h-screen w-screen flex bg-ink-900 bg-grid overflow-auto min-w-[1480px]">
-      <Sidebar active={active} onSelect={setActive} />
-
+  return(
+    <div className="h-screen w-screen flex bg-ink-900 bg-grid overflow-auto min-w-[1400px]">
+      <Sidebar active={active} onSelect={setActive}/>
       <main className="flex-1 min-w-0 flex flex-col">
-        <TopBar time={time} active={active} />
-
+        <TopBar time={time} active={active}/>
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {/* Section 1 — PRP Header KPIs */}
-          <PRPHeader
-            velocity={velocity}
-            throughput={throughput}
-            stability={stability}
-            spend={spend}
-          />
-
-          {/* Section 2 — Agent Harness Intercept Pipeline */}
+          {/* Section 1 — Model KPI cards */}
+          <ModelKPIs/>
+          {/* Section 2 — Prediction engine */}
           <div className="grid grid-cols-12 gap-3 mt-4">
-            <HarnessPipeline />
+            <PredictionEngine/>
           </div>
-
-          {/* Sections 3 & 4 — Comprehension Debt + TCO Calculator */}
+          {/* Section 3 — Analytics row */}
+          <div className="grid grid-cols-12 gap-3 mt-4">
+            <FeatureImportance/>
+            <PerClassMetrics/>
+            <LabelDistribution/>
+          </div>
+          {/* Section 4 — Team economics */}
           <div className="grid grid-cols-12 gap-3 mt-4 mb-6">
-            <ComprehensionDebt />
-            <TCOCalculator live={tick} />
+            <TeamEconomics tick={tick}/>
           </div>
         </div>
       </main>
@@ -1376,79 +942,7 @@ function App() {
   );
 }
 
-function TopBar({ time, active }) {
-  const crumbs = {
-    dashboard:    ['Operations', 'Mission Control'],
-    harness:      ['Operations', 'Agent Harness'],
-    fleet:        ['Operations', 'Agent Fleet'],
-    incidents:    ['Operations', 'Incidents'],
-    debt:         ['Insight',    'Debt Analytics'],
-    reviews:      ['Insight',    'Comprehension Reviews'],
-    lineage:      ['Insight',    'Code Lineage'],
-    tco:          ['Insight',    'System TCO'],
-    rules:        ['Configuration', 'Agent.md Ruleset'],
-    sandboxes:    ['Configuration', 'Sandbox Envelopes'],
-    integrations: ['Configuration', 'Integrations'],
-    settings:     ['Configuration', 'Settings'],
-  }[active] || ['Operations', 'Mission Control'];
-
-  return (
-    <header className="h-14 shrink-0 border-b border-ink-700/70 bg-ink-950/60 backdrop-blur flex items-center px-5 gap-4 whitespace-nowrap">
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate2-400 shrink-0">
-        <span>{crumbs[0]}</span>
-        <Icon name="ChevronRight" className="w-3 h-3 text-slate2-600" />
-        <span className="text-slate-100">{crumbs[1]}</span>
-        <Pill tone="emerald" dot className="ml-2">LIVE</Pill>
-      </div>
-
-      {/* Command search */}
-      <div className="flex-1 max-w-md">
-        <button className="w-full h-8 px-2.5 flex items-center gap-2.5 rounded-sm border border-ink-700 hover:border-ink-600 bg-ink-850/60 text-left">
-          <Icon name="Search" className="w-3.5 h-3.5 text-slate2-500 shrink-0" />
-          <span className="text-[11.5px] text-slate2-400 flex-1 truncate">
-            Run command, route to agent, query log…
-          </span>
-          <Kbd>⌘</Kbd><Kbd>K</Kbd>
-        </button>
-      </div>
-
-      {/* Right cluster */}
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="hidden xl:flex items-center gap-3 pr-3 border-r border-ink-700/70">
-          <TopStat label="incidents"   value="1"     tone="crimson" />
-          <TopStat label="intercepts/h" value="38"   tone="amber"  />
-          <TopStat label="agents"      value="24/40" tone="emerald" />
-        </div>
-        <Btn size="sm" variant="ghost" icon="Bell">3</Btn>
-        <Btn size="sm" variant="ghost" icon="GitPullRequest">PRs</Btn>
-        <Btn size="sm" variant="amber" icon="ShieldAlert">1 awaiting HITL</Btn>
-        <div className="pl-2 ml-1 border-l border-ink-700/70 font-mono text-[10.5px] text-slate2-400 tabular-nums">
-          {time}
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function TopStat({ label, value, tone }) {
-  const tones = {
-    crimson: 'text-crimson2-400',
-    amber:   'text-amber2-400',
-    emerald: 'text-emerald2-400',
-  };
-  return (
-    <div className="flex items-baseline gap-1.5 font-mono text-[10.5px]">
-      <span className="uppercase tracking-[0.14em] text-slate2-500">{label}</span>
-      <span className={`tabular-nums ${tones[tone]}`}>{value}</span>
-    </div>
-  );
-}
-
-// Boot
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-
-  </script>
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
 </body>
 </html>
