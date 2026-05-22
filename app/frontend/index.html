@@ -1,0 +1,1454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HybridEngine · Agent Orchestration & Observability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular'],
+        },
+        colors: {
+          ink: {
+            950: '#070A12',
+            900: '#0B0F19',
+            850: '#0F1422',
+            800: '#141A2B',
+            750: '#1A2138',
+            700: '#222A45',
+            600: '#2D3756',
+            500: '#3E4A6E',
+          },
+          slate2: {
+            300: '#A6B0CC',
+            400: '#7C88A8',
+            500: '#5A6788',
+          },
+          emerald2: { 400: '#22E39C', 500: '#10D58A', 600: '#0BAE71' },
+          amber2:   { 400: '#FFC857', 500: '#FFB020', 600: '#E08800' },
+          crimson2: { 400: '#FF5470', 500: '#FF2A4D', 600: '#D11233' },
+          azure2:   { 400: '#5EA8FF', 500: '#3B82F6', 600: '#1E5BCC' },
+        },
+        boxShadow: {
+          'glow-amber':   '0 0 0 1px rgba(255,176,32,0.35), 0 0 24px -4px rgba(255,176,32,0.5)',
+          'glow-crimson': '0 0 0 1px rgba(255,42,77,0.4),  0 0 28px -4px rgba(255,42,77,0.55)',
+          'glow-emerald': '0 0 0 1px rgba(16,213,138,0.35), 0 0 22px -6px rgba(16,213,138,0.45)',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body, #root { height: 100%; }
+  body {
+    margin: 0;
+    background: #0B0F19;
+    color: #E5EAF5;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: rgba(255,176,32,0.3); color: #fff; }
+
+  /* Subtle dotted grid background */
+  .bg-grid {
+    background-image: radial-gradient(rgba(120,140,190,0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* Scanline sweep for live containers */
+  @keyframes scan {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .scanline::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(94,168,255,0.07) 50%, transparent 100%);
+    animation: scan 5.5s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Critical-alert blink */
+  @keyframes blink-amber {
+    0%, 100% { background-color: rgba(255,176,32,0.16); border-color: rgba(255,176,32,0.55); }
+    50%      { background-color: rgba(255,176,32,0.28); border-color: rgba(255,200,87,0.95); }
+  }
+  .blink-amber { animation: blink-amber 1.5s ease-in-out infinite; }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1;    transform: scale(1); }
+    50%      { opacity: 0.55; transform: scale(0.85); }
+  }
+  .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar       { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0B0F19; }
+  ::-webkit-scrollbar-thumb { background: #222A45; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2D3756; }
+
+  /* PRP banner stripe */
+  .tape {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(255,176,32,0.08) 0 8px,
+      rgba(255,176,32,0.16) 8px 16px
+    );
+  }
+
+  /* Toggle */
+  .switch-track { transition: background-color .15s ease; }
+  .switch-thumb { transition: transform .18s cubic-bezier(.4,1.4,.6,1); }
+
+  /* Range slider */
+  input[type="range"].slider {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: linear-gradient(90deg, #FFB020 var(--p, 40%), #222A45 var(--p, 40%));
+    border-radius: 2px; outline: none;
+  }
+  input[type="range"].slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    background: #FFB020; border: 2px solid #0B0F19;
+    box-shadow: 0 0 12px rgba(255,176,32,0.6);
+    border-radius: 50%; cursor: pointer;
+  }
+  input[type="range"].slider::-moz-range-thumb {
+    width: 16px; height: 16px;
+    background: #FFB020; border: 2px solid #0B0F19;
+    border-radius: 50%; cursor: pointer;
+  }
+
+  /* Comprehension bar track */
+  .bar-track { background: #1A2138; }
+
+  /* Ticker marquee */
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee-track { animation: marquee 30s linear infinite; }
+</style>
+</head>
+<body class="bg-ink-900 text-slate-100">
+  <div id="root"></div>
+
+  <!-- React 18 + Babel standalone -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+          integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+          crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+          integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+          crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+          integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+          crossorigin="anonymous"></script>
+  <!-- Lucide icons UMD -->
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <script type="text/babel" data-presets="react">
+// Lucide icon shortcut — reads icon data from the `lucide` global (UMD)
+// and renders to a React <svg>. Usage: <Icon name="Activity" className="w-4 h-4" />
+
+const LUCIDE = window.lucide || {};
+const ICONS  = (LUCIDE && LUCIDE.icons) || {};
+
+function toAttrs(o, extra = {}) {
+  const out = {};
+  for (const k in o) {
+    if      (k === 'stroke-width')   out.strokeWidth   = o[k];
+    else if (k === 'stroke-linecap') out.strokeLinecap  = o[k];
+    else if (k === 'stroke-linejoin')out.strokeLinejoin = o[k];
+    else if (k === 'class')          out.className      = o[k];
+    else out[k] = o[k];
+  }
+  Object.assign(out, extra);
+  return out;
+}
+
+function renderNode([tag, attrs, kids], key) {
+  const children = Array.isArray(kids) ? kids.map((c, i) => renderNode(c, i)) : null;
+  return React.createElement(tag, { ...toAttrs(attrs), key }, children);
+}
+
+function Icon({ name, className = 'w-4 h-4', strokeWidth = 1.75, color, ...rest }) {
+  const data = ICONS[name] || LUCIDE[name];
+  if (!data) {
+    return (
+      <span
+        className={className}
+        style={{ display: 'inline-block', background: 'currentColor', opacity: 0.35, borderRadius: 2 }}
+      />
+    );
+  }
+  const [, rootAttrs, kids] = data;
+  const attrs = toAttrs(rootAttrs, {
+    className,
+    strokeWidth,
+    ...(color ? { stroke: color } : {}),
+    'aria-hidden': true,
+    ...rest,
+  });
+  delete attrs.width;
+  delete attrs.height;
+  return React.createElement('svg', attrs, kids.map((c, i) => renderNode(c, i)));
+}
+
+window.Icon = Icon;
+
+
+// Shared low-level UI primitives: Panel, Pill, Btn, Kbd, Sparkline, Toggle
+
+function Panel({ title, eyebrow, children, className = '', actions = null, dense = false }) {
+  return (
+    <section className={`relative rounded-md border border-ink-700/80 bg-ink-850/60 backdrop-blur ${className}`}>
+      {(title || eyebrow || actions) && (
+        <header className="flex items-center justify-between px-4 py-2.5 border-b border-ink-700/60">
+          <div className="flex items-baseline gap-3 min-w-0">
+            {eyebrow && (
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
+                {eyebrow}
+              </span>
+            )}
+            {title && (
+              <h3 className="text-[13px] font-semibold tracking-tight text-slate-100 truncate">
+                {title}
+              </h3>
+            )}
+          </div>
+          {actions && <div className="flex items-center gap-1.5 shrink-0">{actions}</div>}
+        </header>
+      )}
+      <div className={dense ? '' : 'p-4'}>{children}</div>
+    </section>
+  );
+}
+
+function Pill({ tone = 'slate', children, dot = false, className = '' }) {
+  const tones = {
+    slate:   'bg-ink-800 text-slate2-300 border-ink-700',
+    emerald: 'bg-emerald2-600/15 text-emerald2-400 border-emerald2-600/40',
+    amber:   'bg-amber2-500/15   text-amber2-400   border-amber2-500/45',
+    crimson: 'bg-crimson2-500/15 text-crimson2-400 border-crimson2-500/45',
+    azure:   'bg-azure2-500/15   text-azure2-400   border-azure2-500/40',
+  };
+  const dotTones = {
+    slate: 'bg-slate2-400', emerald: 'bg-emerald2-400',
+    amber: 'bg-amber2-400', crimson: 'bg-crimson2-400', azure: 'bg-azure2-400',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${tones[tone]} ${className}`}>
+      {dot && <span className={`w-1.5 h-1.5 rounded-full pulse-dot ${dotTones[tone]}`} />}
+      {children}
+    </span>
+  );
+}
+
+function Btn({ children, variant = 'ghost', size = 'sm', className = '', icon, iconRight, ...rest }) {
+  const variants = {
+    ghost:   'border border-ink-700 hover:bg-ink-800 text-slate-200',
+    solid:   'bg-slate-100 hover:bg-white text-ink-900 border border-slate-100',
+    emerald: 'bg-emerald2-600 hover:bg-emerald2-500 text-ink-950 border border-emerald2-500 shadow-glow-emerald',
+    crimson: 'bg-crimson2-600 hover:bg-crimson2-500 text-white border border-crimson2-500 shadow-glow-crimson',
+    amber:   'bg-amber2-500   hover:bg-amber2-400   text-ink-950 border border-amber2-400',
+    outline: 'border border-ink-600 hover:border-ink-500 text-slate-200',
+    danger:  'border border-crimson2-600/50 hover:bg-crimson2-600/15 text-crimson2-400',
+  };
+  const sizes = {
+    xs: 'h-6 px-2   text-[11px]   gap-1',
+    sm: 'h-7 px-2.5 text-[11.5px] gap-1.5',
+    md: 'h-8 px-3   text-xs       gap-1.5',
+    lg: 'h-10 px-4  text-sm       gap-2',
+  };
+  return (
+    <button
+      className={`inline-flex items-center justify-center rounded-sm font-medium tracking-tight transition-colors ${variants[variant]} ${sizes[size]} ${className}`}
+      {...rest}
+    >
+      {icon && <Icon name={icon} className="w-3.5 h-3.5" />}
+      {children}
+      {iconRight && <Icon name={iconRight} className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
+function Kbd({ children }) {
+  return (
+    <kbd className="inline-flex items-center justify-center min-w-[1.4em] px-1.5 h-5 rounded-[3px] border border-ink-700 bg-ink-800 font-mono text-[10px] text-slate2-300">
+      {children}
+    </kbd>
+  );
+}
+
+// Single-colour sparkline. Pass an array of numbers.
+function Sparkline({ data, color = '#5EA8FF', width = 120, height = 32, fill = true }) {
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = (max - min) || 1;
+  const stepX = width / (data.length - 1);
+  const points = data.map((v, i) => [
+    i * stepX,
+    height - ((v - min) / range) * (height - 4) - 2,
+  ]);
+  const d    = points.map(([x, y], i) => (i === 0 ? `M${x},${y}` : `L${x},${y}`)).join(' ');
+  const area = `${d} L${width},${height} L0,${height} Z`;
+  const id   = 'sg-' + color.replace('#', '');
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {fill && <path d={area} fill={`url(#${id})`} />}
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5"
+            strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Toggle switch
+function Toggle({ on, onChange, disabled = false, label }) {
+  return (
+    <button
+      type="button"
+      onClick={() => !disabled && onChange(!on)}
+      className={`switch-track relative inline-flex items-center h-5 w-9 rounded-full border
+        ${on ? 'bg-emerald2-600/80 border-emerald2-500' : 'bg-ink-800 border-ink-600'}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      aria-label={label}
+      aria-pressed={on}
+    >
+      <span className={`switch-thumb absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded-full bg-slate-100 shadow-md ${on ? 'translate-x-4' : ''}`} />
+    </button>
+  );
+}
+
+Object.assign(window, { Panel, Pill, Btn, Kbd, Sparkline, Toggle });
+
+
+// Global left-hand navigation sidebar
+
+const NAV = [
+  { group: 'Operations', items: [
+    { id: 'dashboard',    label: 'Mission Control',       icon: 'LayoutDashboard',  badge: 'PRP' },
+    { id: 'harness',      label: 'Agent Harness',         icon: 'ShieldHalf',       badge: 3, badgeTone: 'amber' },
+    { id: 'fleet',        label: 'Agent Fleet',           icon: 'BotMessageSquare', badge: '24/40' },
+    { id: 'incidents',    label: 'Incidents',             icon: 'Siren',            badge: 1, badgeTone: 'crimson' },
+  ]},
+  { group: 'Insight', items: [
+    { id: 'debt',         label: 'Debt Analytics',        icon: 'BrainCircuit' },
+    { id: 'reviews',      label: 'Comprehension Reviews', icon: 'BookCheck' },
+    { id: 'lineage',      label: 'Code Lineage',          icon: 'GitBranch' },
+    { id: 'tco',          label: 'System TCO',            icon: 'Calculator' },
+  ]},
+  { group: 'Configuration', items: [
+    { id: 'rules',        label: 'Agent.md Ruleset',      icon: 'FileCog' },
+    { id: 'sandboxes',    label: 'Sandbox Envelopes',     icon: 'Container' },
+    { id: 'integrations', label: 'Integrations',          icon: 'Cable' },
+    { id: 'settings',     label: 'Settings',              icon: 'Settings2' },
+  ]},
+];
+
+function Sidebar({ active, onSelect }) {
+  return (
+    <aside className="w-[232px] shrink-0 h-full flex flex-col border-r border-ink-700/70 bg-ink-950/80">
+      {/* Brand */}
+      <div className="h-14 px-4 flex items-center gap-2.5 border-b border-ink-700/70">
+        <div className="relative w-7 h-7">
+          <div className="absolute inset-0 rounded-sm bg-gradient-to-br from-emerald2-400 to-azure2-500 opacity-90" />
+          <div className="absolute inset-[3px] rounded-[2px] bg-ink-950 flex items-center justify-center">
+            <div className="w-2 h-2 rounded-full bg-emerald2-400 pulse-dot" />
+          </div>
+        </div>
+        <div className="leading-tight">
+          <div className="text-[13px] font-semibold tracking-tight text-slate-100">HybridEngine</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate2-500">v2.41 · prod</div>
+        </div>
+      </div>
+
+      {/* Environment switcher */}
+      <button className="mx-3 mt-3 mb-2 h-8 px-2.5 flex items-center justify-between rounded-sm border border-ink-700 hover:border-ink-600 bg-ink-850 text-left">
+        <span className="flex items-center gap-2 text-[12px]">
+          <Icon name="Globe" className="w-3.5 h-3.5 text-emerald2-400" />
+          <span className="text-slate-200">acme-payments</span>
+          <span className="font-mono text-[10px] text-slate2-500">prod-us-east-2</span>
+        </span>
+        <Icon name="ChevronsUpDown" className="w-3 h-3 text-slate2-500" />
+      </button>
+
+      {/* Nav groups */}
+      <nav className="flex-1 overflow-y-auto px-2 pb-3">
+        {NAV.map((g) => (
+          <div key={g.group} className="mt-3">
+            <div className="px-2 mb-1 font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
+              {g.group}
+            </div>
+            <ul className="space-y-0.5">
+              {g.items.map((it) => {
+                const isActive = active === it.id;
+                return (
+                  <li key={it.id}>
+                    <button
+                      onClick={() => onSelect(it.id)}
+                      className={`group w-full flex items-center gap-2.5 px-2 h-8 rounded-sm text-[12.5px] transition-colors ${
+                        isActive
+                          ? 'bg-ink-800 text-slate-100 ring-1 ring-inset ring-ink-600'
+                          : 'text-slate2-300 hover:bg-ink-850 hover:text-slate-100'
+                      }`}
+                    >
+                      <Icon
+                        name={it.icon}
+                        className={`w-4 h-4 ${isActive ? 'text-emerald2-400' : 'text-slate2-400 group-hover:text-slate2-300'}`}
+                      />
+                      <span className="flex-1 text-left truncate">{it.label}</span>
+                      {it.badge !== undefined && (
+                        <Pill tone={it.badgeTone || 'slate'} className="!px-1 !py-0">{it.badge}</Pill>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </nav>
+
+      {/* System status footer */}
+      <div className="border-t border-ink-700/70 p-3 space-y-2 text-[11px]">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Harness</span>
+          <span className="inline-flex items-center gap-1.5 text-emerald2-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald2-400 pulse-dot" />
+            <span className="font-mono">ARMED</span>
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Intercept lag</span>
+          <span className="font-mono text-slate-200">12ms</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Quorum</span>
+          <span className="font-mono text-slate-200">2 of 3 on-call</span>
+        </div>
+        <div className="pt-2 mt-2 border-t border-ink-700/70 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber2-500 to-crimson2-500 flex items-center justify-center text-[11px] font-semibold text-ink-950">
+            MK
+          </div>
+          <div className="leading-tight">
+            <div className="text-[11.5px] text-slate-100">M. Khoury</div>
+            <div className="font-mono text-[10px] text-slate2-500">on-call · primary</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+window.Sidebar = Sidebar;
+
+
+// Section 1 — Top-Level Metrics Header (PRP Dashboard)
+// Exposes the Productivity-Reliability Paradox across 4 KPI cards.
+
+function PRPHeader({ velocity, throughput, stability, spend }) {
+  const cards = [
+    {
+      eyebrow: 'INDIVIDUAL · AUTHOR',
+      label:   'Token Velocity / Author',
+      value:   velocity.toFixed(0),
+      unit:    'k tok/day',
+      delta:   '+45.2%',
+      sub:     'MoM · cohort: 142 engineers',
+      tone:    'amber',
+      icon:    'Zap',
+      trail:   'Individual output diverging from system output — classic PRP signal.',
+      data:    [62, 68, 73, 80, 86, 95, 110, 132, 150, 168, 184, 198, 212, 224],
+    },
+    {
+      eyebrow: 'SYSTEM · MERGED',
+      label:   'Codebase Throughput',
+      value:   throughput.toFixed(1),
+      unit:    'PR/day',
+      delta:   '-1.5%',
+      sub:     'merge-rate · 28d trailing',
+      tone:    'slate',
+      icon:    'GitMerge',
+      trail:   'Net merged work is flat-to-down despite individual velocity surging.',
+      data:    [44, 46, 45, 47, 46, 45, 44, 45, 46, 45, 44, 44, 43, 43],
+    },
+    {
+      eyebrow: 'RELIABILITY · CHANGE-FAIL',
+      label:   'Delivery Stability',
+      value:   stability.toFixed(1),
+      unit:    '% CFR',
+      delta:   '-7.2%',
+      sub:     'change-failure rate · rising',
+      tone:    'crimson',
+      icon:    'AlertTriangle',
+      trail:   'Stability eroding — incidents-per-deploy up across 4 of 6 services.',
+      data:    [9.0, 9.4, 10.1, 10.8, 11.6, 12.2, 12.5, 13.1, 13.4, 14.0, 14.6, 15.2, 15.8, 16.4],
+      isBad:   true,
+    },
+    {
+      eyebrow: 'ECONOMIC · BURN',
+      label:   'Agent Compute Spend',
+      value:   '$' + spend.toLocaleString(),
+      unit:    '/day',
+      delta:   '2.1× human budget',
+      sub:     'rolling 24h · tokens billed',
+      tone:    'amber',
+      icon:    'Flame',
+      trail:   'Unsupervised loops on >100k-tok contexts inflate run-rate weekly.',
+      data:    [310, 340, 380, 420, 470, 540, 610, 700, 790, 880, 940, 990, 1020, 1075],
+    },
+  ];
+
+  return (
+    <div>
+      {/* Paradox banner */}
+      <div className="mb-3 flex items-center gap-3 px-3 py-2 rounded-md border border-amber2-500/30 bg-amber2-500/[0.05] tape">
+        <Icon name="ActivitySquare" className="w-4 h-4 text-amber2-400" />
+        <div className="text-[12px] text-slate-100">
+          <span className="font-semibold">Productivity-Reliability Paradox detected.</span>
+          <span className="text-slate2-300"> Author velocity is up 45% MoM while system stability has dropped 7.2%. Authoring comprehension trending below 60% across 11 modules.</span>
+        </div>
+        <div className="ml-auto flex items-center gap-1.5">
+          <Pill tone="amber" dot>PARADOX · ACTIVE</Pill>
+          <Btn variant="ghost" size="xs" icon="ExternalLink">Open analysis</Btn>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-3">
+        {cards.map((c) => <KPICard key={c.label} card={c} />)}
+      </div>
+    </div>
+  );
+}
+
+function KPICard({ card }) {
+  const tones = {
+    amber:   { color: '#FFB020', ring: 'ring-amber2-500/40',   text: 'text-amber2-400' },
+    crimson: { color: '#FF2A4D', ring: 'ring-crimson2-500/40', text: 'text-crimson2-400' },
+    emerald: { color: '#10D58A', ring: 'ring-emerald2-500/40', text: 'text-emerald2-400' },
+    slate:   { color: '#7C88A8', ring: 'ring-ink-600',         text: 'text-slate2-300' },
+  };
+  const t = tones[card.tone];
+
+  const deltaIcon = card.delta.startsWith('-')
+    ? 'TrendingDown'
+    : card.delta.startsWith('+')
+      ? 'TrendingUp'
+      : 'ArrowUpRight';
+
+  return (
+    <div className={`relative rounded-md border border-ink-700/80 bg-ink-850/70 p-3.5 overflow-hidden ${
+      card.tone === 'amber' || card.tone === 'crimson' ? 'ring-1 ' + t.ring : ''
+    }`}>
+      {/* Eyebrow */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">{card.eyebrow}</span>
+        <Icon name={card.icon} className={`w-3.5 h-3.5 ${t.text}`} />
+      </div>
+
+      {/* Label */}
+      <div className="text-[12px] text-slate2-400 mb-1.5">{card.label}</div>
+
+      {/* Value */}
+      <div className="flex items-baseline gap-1.5">
+        <span className="font-mono text-[28px] leading-none font-semibold text-slate-100 tabular-nums">{card.value}</span>
+        <span className="font-mono text-[11px] text-slate2-400">{card.unit}</span>
+      </div>
+
+      {/* Delta + sub */}
+      <div className="mt-2.5 flex items-center justify-between">
+        <span className={`inline-flex items-center gap-1 font-mono text-[11px] ${t.text}`}>
+          <Icon name={deltaIcon} className="w-3 h-3" />
+          {card.delta}
+        </span>
+        <span className="font-mono text-[10px] text-slate2-500">{card.sub}</span>
+      </div>
+
+      {/* Sparkline */}
+      <div className="mt-3 -mx-1.5">
+        <Sparkline data={card.data} color={t.color} width={220} height={36} />
+      </div>
+
+      {/* Trail */}
+      <div className="mt-2 pt-2 border-t border-ink-700/60 text-[10.5px] leading-snug text-slate2-400">
+        {card.trail}
+      </div>
+    </div>
+  );
+}
+
+window.PRPHeader = PRPHeader;
+
+
+// Section 2 — Live Agent Harness Intercept Pipeline (centerpiece)
+// Three-stage sandboxed execution envelope: tty capture → Agent.md rule eval → HITL approval.
+
+const AGENT_FEED = [
+  { id: 'agt-7c41', name: 'agt://refactor-billing-svc',  status: 'EXECUTING', model: 'claude-sonnet-4.6', ttl: '00:08:42' },
+  { id: 'agt-9f02', name: 'agt://infra-migrate-staging', status: 'HARNESS',   model: 'gpt-5.1-turbo',    ttl: '00:03:11' },
+  { id: 'agt-2bd1', name: 'agt://chore-deps-bump',       status: 'EXECUTING', model: 'claude-haiku-4.5', ttl: '00:14:55' },
+  { id: 'agt-4e88', name: 'agt://gen-graphql-resolvers', status: 'IDLE',      model: 'gpt-5.1-turbo',    ttl: '—' },
+];
+
+const STAGE1_LINES = [
+  { t: '14:32:08.114', tag: 'shell',   text: '$ railway run --service api-prod --env production' },
+  { t: '14:32:08.231', tag: 'shell',   text: '$ railway volume list --service postgres-primary' },
+  { t: '14:32:08.402', tag: 'graphql', text: 'mutation { volumeDelete(volumeId: "vol_8af2…", force: true) }' },
+  { t: '14:32:08.517', tag: 'shell',   text: '$ git push origin main --force-with-lease' },
+];
+
+function HarnessPipeline() {
+  const [resolved,   setResolved]   = React.useState(null); // 'approved' | 'blocked' | null
+  const [armConfirm, setArmConfirm] = React.useState(false);
+  const [selected,   setSelected]   = React.useState('agt-9f02');
+
+  function handleApprove() { if (armConfirm) setResolved('approved'); }
+  function handleBlock()   { setResolved('blocked'); }
+  function handleReset()   { setResolved(null); setArmConfirm(false); }
+
+  return (
+    <Panel
+      eyebrow="LIVE · 4 AGENTS"
+      title="Agent Harness Intercept Pipeline"
+      className="col-span-12"
+      actions={
+        <>
+          <Pill tone="emerald" dot>HARNESS ARMED</Pill>
+          <Pill tone="slate"><Icon name="Cpu" className="w-3 h-3 mr-1" />local-proxy · 12ms</Pill>
+          <Btn size="xs" icon="ListFilter">Filter</Btn>
+          <Btn size="xs" icon="Pause">Pause feed</Btn>
+        </>
+      }
+    >
+      <div className="grid grid-cols-12 gap-3">
+        {/* Active agent list (left rail) */}
+        <div className="col-span-3">
+          <div className="rounded-md border border-ink-700/70 bg-ink-900/60 overflow-hidden">
+            <div className="px-3 py-2 border-b border-ink-700/60 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Active sessions</span>
+              <span className="font-mono text-[10px] text-slate2-500">4 / 40</span>
+            </div>
+            <ul>
+              {AGENT_FEED.map((a) => {
+                const isSel = selected === a.id;
+                const tone  = a.status === 'HARNESS' ? 'amber' : a.status === 'EXECUTING' ? 'emerald' : 'slate';
+                return (
+                  <li key={a.id}>
+                    <button
+                      onClick={() => setSelected(a.id)}
+                      className={`w-full text-left px-3 py-2 border-b border-ink-700/40 last:border-b-0 transition-colors ${
+                        isSel ? 'bg-ink-800/80' : 'hover:bg-ink-850/80'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          a.status === 'HARNESS'   ? 'bg-amber2-400 pulse-dot'
+                          : a.status === 'EXECUTING' ? 'bg-emerald2-400 pulse-dot'
+                          : 'bg-slate2-500'
+                        }`} />
+                        <span className="font-mono text-[11px] text-slate-100 truncate">{a.name}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Pill tone={tone}>{a.status}</Pill>
+                        <span className="font-mono text-[10px] text-slate2-500">{a.ttl}</span>
+                      </div>
+                      <div className="mt-1 font-mono text-[10px] text-slate2-500 truncate">{a.model}</div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+
+        {/* Pipeline stages */}
+        <div className="col-span-9 grid grid-cols-3 gap-3">
+          <Stage1 />
+          <Stage2 />
+          <Stage3
+            resolved={resolved}
+            armConfirm={armConfirm}
+            setArmConfirm={setArmConfirm}
+            onApprove={handleApprove}
+            onBlock={handleBlock}
+            onReset={handleReset}
+          />
+        </div>
+      </div>
+
+      {/* Pipeline footer stats */}
+      <div className="mt-3 flex items-center justify-between text-[11px] text-slate2-400">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">Last hour</span>
+          <span><span className="text-emerald2-400 font-mono">412</span> approved</span>
+          <span><span className="text-amber2-400  font-mono">38</span>  intercepted</span>
+          <span><span className="text-crimson2-400 font-mono">6</span>  blocked &amp; rolled back</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Kbd>⌘</Kbd><Kbd>↵</Kbd>
+          <span className="text-slate2-500">approve · </span>
+          <Kbd>⌘</Kbd><Kbd>⌫</Kbd>
+          <span className="text-slate2-500">terminate</span>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+// ──────────────────────── Stage 1 ────────────────────────
+function Stage1() {
+  return (
+    <StageShell idx="01" title="Agent Execution Container" sub="sandboxed envelope · network: egress-deny" tone="azure">
+      <div className="relative h-[260px] rounded-sm border border-ink-700/70 bg-ink-950/80 overflow-hidden scanline">
+        <div className="px-3 py-1.5 border-b border-ink-700/60 flex items-center justify-between bg-ink-900/80">
+          <span className="font-mono text-[10px] text-slate2-400">agt-9f02 · tty0</span>
+          <span className="font-mono text-[10px] text-emerald2-400">● capturing</span>
+        </div>
+        <div className="p-3 font-mono text-[11px] leading-relaxed space-y-1.5">
+          {STAGE1_LINES.map((l, i) => (
+            <div key={i} className="flex gap-2.5">
+              <span className="text-slate2-500 shrink-0">{l.t}</span>
+              <span className={l.tag === 'graphql' ? 'text-amber2-400' : 'text-slate-200'}>{l.text}</span>
+            </div>
+          ))}
+          <div className="flex gap-2.5">
+            <span className="text-slate2-500 shrink-0">14:32:08.612</span>
+            <span className="text-slate-300">$ <span className="inline-block w-1.5 h-3 -mb-0.5 bg-emerald2-400 align-middle pulse-dot" /></span>
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-slate2-500">
+        <span>fs: read-only · /workspace</span>
+        <span>cpu 18%  mem 412MB</span>
+      </div>
+    </StageShell>
+  );
+}
+
+// ──────────────────────── Stage 2 ────────────────────────
+function Stage2() {
+  return (
+    <StageShell idx="02" title="Agent Harness Filter" sub="local-proxy · Agent.md ruleset v17" tone="amber">
+      <div className="rounded-sm border border-ink-700/70 bg-ink-950/80 p-3 h-[260px] flex flex-col">
+        {/* Triggered rule */}
+        <div className="rounded-sm border border-amber2-500/45 bg-amber2-500/[0.08] p-2.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] text-amber2-400">
+              <Icon name="AlertTriangle" className="w-3 h-3" />
+              RULE TRIGGERED
+            </span>
+            <span className="font-mono text-[10px] text-slate2-500">rule-id: R-074</span>
+          </div>
+          <div className="font-mono text-[11px] text-slate-100 leading-snug">
+            Broad <span className="text-amber2-400">volumeDelete</span> mutation detected on Railway CLI without explicit volume scope.
+          </div>
+          <div className="mt-1.5 font-mono text-[10px] text-slate2-400">
+            matched: <span className="text-amber2-400">CLASS_DESTRUCTIVE_STORAGE</span> · severity <span className="text-amber2-400">P1</span>
+          </div>
+        </div>
+
+        {/* Evaluation chain */}
+        <div className="mt-2.5 flex-1 overflow-y-auto pr-1">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500 mb-1.5">Evaluation chain</div>
+          <ul className="space-y-1 font-mono text-[10.5px]">
+            <ChainItem state="pass"    label="ALLOW_READ_FILESYSTEM" />
+            <ChainItem state="pass"    label="ALLOW_NETWORK_LOOPBACK" />
+            <ChainItem state="pass"    label="DENY_PROD_WRITES_WITHOUT_TICKET" subtle />
+            <ChainItem state="pass"    label="DENY_FORCE_PUSH_PROTECTED" subtle />
+            <ChainItem state="hold"    label="HITL_REQUIRED_VOLUME_MUTATION" />
+            <ChainItem state="pending" label="DENY_RM_RECURSIVE_ROOT" subtle />
+            <ChainItem state="pending" label="DENY_SECRET_EXFIL" subtle />
+          </ul>
+        </div>
+
+        <div className="mt-2 pt-2 border-t border-ink-700/60 flex items-center justify-between font-mono text-[10px] text-slate2-500">
+          <span>policies evaluated: 41/41</span>
+          <span className="text-amber2-400">→ escalating to HITL</span>
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-slate2-500">
+        <span>Agent.md sha · 9e3a4f1</span>
+        <span>p99 eval · 11ms</span>
+      </div>
+    </StageShell>
+  );
+}
+
+function ChainItem({ state, label, subtle = false }) {
+  const cfg = {
+    pass:    { icon: 'Check', tone: 'text-emerald2-400' },
+    hold:    { icon: 'Hand',  tone: 'text-amber2-400'   },
+    pending: { icon: 'Minus', tone: 'text-slate2-500'   },
+  }[state];
+  return (
+    <li className={`flex items-center gap-2 ${subtle ? 'opacity-70' : ''}`}>
+      <Icon name={cfg.icon} className={`w-3 h-3 ${cfg.tone}`} />
+      <span className={state === 'pending' ? 'text-slate2-500' : 'text-slate2-300'}>{label}</span>
+    </li>
+  );
+}
+
+// ──────────────────────── Stage 3 ────────────────────────
+function Stage3({ resolved, armConfirm, setArmConfirm, onApprove, onBlock, onReset }) {
+  const subText = resolved === null
+    ? 'awaiting physical-keyboard approval'
+    : resolved === 'approved' ? 'approved & promoted'
+    : 'terminated & rolled back';
+
+  const stageTone = resolved === null ? 'amber' : resolved === 'approved' ? 'emerald' : 'crimson';
+
+  return (
+    <StageShell idx="03" title="Human Intercept Point" sub={subText} tone={stageTone}>
+      <div className={`rounded-sm border h-[260px] flex flex-col ${
+        resolved === null
+          ? 'border-amber2-500/55 bg-amber2-500/[0.04]'
+          : resolved === 'approved'
+            ? 'border-emerald2-500/45 bg-emerald2-500/[0.05]'
+            : 'border-crimson2-500/55 bg-crimson2-500/[0.05]'
+      }`}>
+        {/* Blinking banner */}
+        {resolved === null && (
+          <div className="blink-amber border-b px-2.5 py-1.5 flex items-center gap-2">
+            <Icon name="ShieldAlert" className="w-3.5 h-3.5 text-amber2-400" />
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-amber2-400">
+              Critical action blocked · physical keyboard approval required
+            </span>
+          </div>
+        )}
+
+        <div className="p-3 flex-1 overflow-y-auto">
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500 mb-1">Pending mutation</div>
+          <div className="font-mono text-[12px] text-slate-100 leading-snug break-all">
+            <span className="text-amber2-400">volumeDelete</span>(volumeId:{' '}
+            <span className="text-azure2-400">"vol_8af2c1…"</span>, force:{' '}
+            <span className="text-crimson2-400">true</span>)
+          </div>
+
+          <dl className="mt-3 grid grid-cols-2 gap-y-1.5 gap-x-3 font-mono text-[10.5px]">
+            <dt className="text-slate2-500">target</dt>
+            <dd className="text-slate-200 text-right">postgres-primary · prod</dd>
+            <dt className="text-slate2-500">data at risk</dt>
+            <dd className="text-crimson2-400 text-right">487 GB · 41M rows</dd>
+            <dt className="text-slate2-500">blast radius</dt>
+            <dd className="text-crimson2-400 text-right">tier-0 · checkout</dd>
+            <dt className="text-slate2-500">rollback</dt>
+            <dd className="text-slate-200 text-right">point-in-time · 14:31:01</dd>
+            <dt className="text-slate2-500">requesting agent</dt>
+            <dd className="text-slate-200 text-right">agt://infra-migrate-staging</dd>
+          </dl>
+
+          {/* Arm toggle */}
+          {resolved === null && (
+            <div className="mt-3 rounded-sm border border-ink-700 bg-ink-900/70 px-2.5 py-2 flex items-center gap-2">
+              <Toggle on={armConfirm} onChange={setArmConfirm} label="Arm approval" />
+              <span className="text-[11px] text-slate-200">I have read the diff &amp; accept blast radius</span>
+            </div>
+          )}
+
+          {resolved === 'approved' && (
+            <div className="mt-3 rounded-sm border border-emerald2-500/40 bg-emerald2-500/[0.06] px-2.5 py-2 font-mono text-[10.5px] text-emerald2-400">
+              ✓ promoted by M. Khoury · 14:32:14 · audit log #aud-19842
+            </div>
+          )}
+          {resolved === 'blocked' && (
+            <div className="mt-3 rounded-sm border border-crimson2-500/40 bg-crimson2-500/[0.06] px-2.5 py-2 font-mono text-[10.5px] text-crimson2-400">
+              ✕ terminated · session agt-9f02 · rollback to PITR 14:31:01 issued
+            </div>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div className="border-t border-ink-700/60 p-2.5 grid grid-cols-2 gap-2">
+          {resolved === null ? (
+            <>
+              <Btn
+                variant="emerald" size="md" icon="ShieldCheck"
+                onClick={onApprove}
+                disabled={!armConfirm}
+                className={!armConfirm ? 'opacity-50 cursor-not-allowed' : ''}
+              >
+                Approve &amp; Execute
+              </Btn>
+              <Btn variant="crimson" size="md" icon="OctagonX" onClick={onBlock}>
+                Terminate &amp; Rollback
+              </Btn>
+            </>
+          ) : (
+            <Btn variant="ghost" size="md" icon="RotateCcw" onClick={onReset} className="col-span-2">
+              Replay intercept · new mutation
+            </Btn>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between text-[10.5px] font-mono text-slate2-500">
+        <span>quorum: 1 of 1</span>
+        <span>SLA: 2m · elapsed 0:42</span>
+      </div>
+    </StageShell>
+  );
+}
+
+// ──────────────────────── Stage shell ────────────────────────
+function StageShell({ idx, title, sub, tone, children }) {
+  const tones = {
+    azure:   'text-azure2-400   border-azure2-500/30',
+    amber:   'text-amber2-400   border-amber2-500/40',
+    emerald: 'text-emerald2-400 border-emerald2-500/40',
+    crimson: 'text-crimson2-400 border-crimson2-500/40',
+  };
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-2 mb-2">
+        <span className={`font-mono text-[10px] inline-flex items-center justify-center w-6 h-5 rounded-sm border bg-ink-900 ${tones[tone]}`}>
+          {idx}
+        </span>
+        <div className="leading-tight min-w-0">
+          <div className="text-[12.5px] font-semibold text-slate-100 truncate">{title}</div>
+          <div className="font-mono text-[10px] text-slate2-500 truncate">{sub}</div>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+window.HarnessPipeline = HarnessPipeline;
+
+
+// Section 3 — Comprehension Debt Analytics
+// Cognitive decay tracker, sprint estimation rule slider, comprehension review checklist.
+
+const MODULES = [
+  { name: 'payments/checkout-orchestrator.ts', author: 'agt-7c41 → S. Volkova', loc: 1842, comp: 42, churn: 'high',   ttl: '2d',      tier: 'tier-0' },
+  { name: 'ledger/reconciliation.rs',          author: 'agt-2bd1 → R. Okafor',  loc: 964,  comp: 58, churn: 'medium', ttl: '5d',      tier: 'tier-1' },
+  { name: 'auth/session-token-rotator.go',     author: 'agt-9f02 → M. Khoury',  loc: 432,  comp: 71, churn: 'low',    ttl: '11d',     tier: 'tier-0' },
+  { name: 'gql/resolvers/inventory.ts',        author: 'agt-4e88 → J. Pham',    loc: 2104, comp: 31, churn: 'high',   ttl: 'overdue', tier: 'tier-1' },
+  { name: 'workers/email-digest.py',           author: 'agt-2bd1 → R. Okafor',  loc: 287,  comp: 88, churn: 'low',    ttl: '14d',     tier: 'tier-2' },
+];
+
+const REVIEWS = [
+  { who: 'S. Volkova', mod: 'checkout-orchestrator.ts',  state: 'overdue', due: '−1d' },
+  { who: 'J. Pham',    mod: 'resolvers/inventory.ts',    state: 'overdue', due: '−3h' },
+  { who: 'R. Okafor',  mod: 'reconciliation.rs',         state: 'pending', due: '2d'  },
+  { who: 'M. Khoury',  mod: 'session-token-rotator.go',  state: 'done',    due: '✓'   },
+  { who: 'A. Iyer',    mod: 'workers/email-digest.py',   state: 'done',    due: '✓'   },
+];
+
+function ComprehensionDebt() {
+  const [audit, setAudit] = React.useState(40);
+
+  React.useEffect(() => {
+    const el = document.querySelector('.cd-slider');
+    if (el) el.style.setProperty('--p', `${audit}%`);
+  }, [audit]);
+
+  const sprintHrs = 80;
+  const auditHrs  = Math.round((audit / 100) * sprintHrs);
+  const buildHrs  = sprintHrs - auditHrs;
+
+  return (
+    <Panel
+      eyebrow="LONG-TERM HEALTH"
+      title="Comprehension Debt Analytics"
+      className="col-span-8"
+      actions={
+        <>
+          <Pill tone="crimson" dot>11 modules &lt; 60%</Pill>
+          <Btn size="xs" icon="FileText">Export report</Btn>
+        </>
+      }
+    >
+      <div className="grid grid-cols-12 gap-3">
+        {/* Cognitive Decay Tracker */}
+        <div className="col-span-7">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
+              Cognitive Decay · Recently merged AI modules
+            </div>
+            <div className="flex items-center gap-2 font-mono text-[10px] text-slate2-500">
+              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald2-400" /> ≥ 75%</span>
+              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber2-400"   /> 60–74%</span>
+              <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-crimson2-400" /> &lt; 60%</span>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-ink-700/70 overflow-hidden">
+            <div className="grid grid-cols-[1.6fr_0.9fr_0.5fr_0.85fr] gap-3 px-3 py-1.5 border-b border-ink-700/60 bg-ink-900/60 font-mono text-[10px] uppercase tracking-[0.14em] text-slate2-500">
+              <span>Module · authoring chain</span>
+              <span>Comprehension</span>
+              <span className="text-right">LOC AI</span>
+              <span className="text-right">Review TTL</span>
+            </div>
+            <ul>
+              {MODULES.map((m) => {
+                const tone     = m.comp >= 75 ? 'emerald' : m.comp >= 60 ? 'amber' : 'crimson';
+                const barColor = tone === 'emerald' ? '#10D58A' : tone === 'amber' ? '#FFB020' : '#FF2A4D';
+                return (
+                  <li key={m.name} className="grid grid-cols-[1.6fr_0.9fr_0.5fr_0.85fr] gap-3 px-3 py-2.5 border-b border-ink-700/40 last:border-b-0 hover:bg-ink-850/60">
+                    <div className="min-w-0">
+                      <div className="font-mono text-[11.5px] text-slate-100 truncate">{m.name}</div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Pill
+                          tone={m.tier === 'tier-0' ? 'crimson' : m.tier === 'tier-1' ? 'amber' : 'slate'}
+                          className="!py-0"
+                        >
+                          {m.tier}
+                        </Pill>
+                        <span className="font-mono text-[10px] text-slate2-500 truncate">{m.author}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bar-track overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${m.comp}%`, background: barColor, boxShadow: `0 0 8px ${barColor}55` }}
+                        />
+                      </div>
+                      <span className={`font-mono text-[11px] tabular-nums ${
+                        tone === 'emerald' ? 'text-emerald2-400' : tone === 'amber' ? 'text-amber2-400' : 'text-crimson2-400'
+                      }`}>
+                        {m.comp}%
+                      </span>
+                    </div>
+                    <div className="text-right font-mono text-[11px] text-slate-200 tabular-nums">{m.loc.toLocaleString()}</div>
+                    <div className="text-right font-mono text-[11px]">
+                      <span className={m.ttl === 'overdue' ? 'text-crimson2-400' : 'text-slate-200'}>{m.ttl}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Sprint Estimation Rule Calculator */}
+          <div className="mt-3 rounded-md border border-ink-700/70 bg-ink-900/40 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <div className="text-[12px] font-semibold text-slate-100">Sprint Estimation Rule</div>
+                <div className="font-mono text-[10px] text-slate2-500">Enforced ≥ 30% audit buffer — hard-cap at PR merge time</div>
+              </div>
+              <Pill tone={audit >= 40 ? 'emerald' : audit >= 30 ? 'amber' : 'crimson'} dot>
+                BUFFER {audit}%
+              </Pill>
+            </div>
+
+            <div className="flex items-center gap-3 mb-3">
+              <input
+                type="range" min="0" max="80" step="5"
+                value={audit}
+                onChange={(e) => setAudit(+e.target.value)}
+                className="slider cd-slider"
+              />
+              <span className="font-mono text-[11px] text-amber2-400 w-10 text-right tabular-nums">{audit}%</span>
+            </div>
+
+            {/* Allocation bar */}
+            <div className="h-7 w-full rounded-sm overflow-hidden flex border border-ink-700/60">
+              <div
+                className="bg-azure2-500/35 border-r border-ink-900 flex items-center justify-center font-mono text-[10px] text-azure2-400"
+                style={{ width: `${100 - audit}%` }}
+              >
+                BUILD · {buildHrs}h
+              </div>
+              <div
+                className="bg-amber2-500/25 flex items-center justify-center font-mono text-[10px] text-amber2-400"
+                style={{ width: `${audit}%` }}
+              >
+                AUDIT · {auditHrs}h
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-slate2-500">
+              <span>2-week sprint · capacity {sprintHrs}h/eng</span>
+              <span>
+                {audit < 30
+                  ? <span className="text-crimson2-400">⚠ below minimum — sprint will fail policy R-031</span>
+                  : <span className="text-emerald2-400">✓ policy R-031 satisfied</span>
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mandatory Comprehension Reviews */}
+        <div className="col-span-5">
+          <div className="rounded-md border border-ink-700/70 bg-ink-900/50 h-full flex flex-col">
+            <div className="px-3 py-2 border-b border-ink-700/60 flex items-center justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate2-500">
+                Mandatory comprehension reviews
+              </span>
+              <Pill tone="amber">SPRINT-87 · CLOSES 18:00</Pill>
+            </div>
+            <ul className="divide-y divide-ink-700/40 flex-1">
+              {REVIEWS.map((r) => {
+                const isOverdue = r.state === 'overdue';
+                const isDone    = r.state === 'done';
+                return (
+                  <li key={r.who} className="px-3 py-2.5 flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-sm border flex items-center justify-center shrink-0 ${
+                      isDone
+                        ? 'border-emerald2-500/60 bg-emerald2-500/15'
+                        : isOverdue
+                          ? 'border-crimson2-500/60 bg-crimson2-500/10 blink-amber'
+                          : 'border-ink-600 bg-ink-850'
+                    }`}>
+                      {isDone    && <Icon name="Check" className="w-3 h-3 text-emerald2-400" />}
+                      {isOverdue && <Icon name="Clock" className="w-3 h-3 text-crimson2-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] text-slate-100">{r.who}</div>
+                      <div className="font-mono text-[10.5px] text-slate2-400 truncate">verbal · {r.mod}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`font-mono text-[11px] ${
+                        isOverdue ? 'text-crimson2-400' : isDone ? 'text-emerald2-400' : 'text-slate-200'
+                      }`}>
+                        {r.due}
+                      </div>
+                      <div className="font-mono text-[10px] text-slate2-500 uppercase">{r.state}</div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="px-3 py-2 border-t border-ink-700/60 flex items-center justify-between font-mono text-[10px] text-slate2-500">
+              <span>3 / 5 complete</span>
+              <Btn size="xs" icon="CalendarClock">Schedule walk-throughs</Btn>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+window.ComprehensionDebt = ComprehensionDebt;
+
+
+// Section 4 — Economic TCO Calculator
+// Side-by-side: Human Capital loaded cost vs. Agent Compute burn rate with live ticker.
+
+function TCOCalculator({ live }) {
+  // Human side — interactive inputs
+  const [salary,  setSalary]  = React.useState(165000);
+  const [loading, setLoading] = React.useState(1.32);  // benefits + overhead multiplier
+  const [recruit, setRecruit] = React.useState(28000);
+  const [rampWk,  setRampWk]  = React.useState(12);
+
+  const humanLoaded = Math.round(salary * loading + recruit + (salary / 52) * rampWk * 0.5);
+
+  // Agent side — animated burn rate
+  const agentDaily  = Math.round(1000 + Math.sin(live / 4) * 70 + (live % 11) * 6);
+  const agentAnnual = Math.round(agentDaily * 365 + 4800 /* licenses */);
+  const delta       = agentAnnual - humanLoaded;
+  const agentHigher = delta > 0;
+
+  return (
+    <Panel
+      eyebrow="ECONOMICS · ANNUALIZED"
+      title="System TCO · Human Capital vs. Agent Compute"
+      className="col-span-4"
+      actions={
+        <Pill tone={agentHigher ? 'crimson' : 'emerald'} dot>
+          {agentHigher ? 'AGENT > HUMAN' : 'AGENT < HUMAN'}
+        </Pill>
+      }
+    >
+      <div className="grid grid-cols-2 gap-2">
+        {/* Human column */}
+        <div className="rounded-md border border-ink-700/70 bg-ink-900/40 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Users" className="w-3.5 h-3.5 text-azure2-400" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-azure2-400">Human capital</span>
+          </div>
+
+          <Field label="Base salary"     value={salary}  onChange={setSalary}  prefix="$" max={400000} step={5000} />
+          <Field label="Loading factor"  value={loading} onChange={setLoading} suffix="×" step={0.01} min={1} max={2} fixed={2} />
+          <Field label="Recruitment"     value={recruit} onChange={setRecruit} prefix="$" max={150000} step={1000} />
+          <Field label="Ramp-up (weeks)" value={rampWk}  onChange={setRampWk} suffix="w" max={52} step={1} />
+
+          <div className="mt-2 pt-2 border-t border-ink-700/60">
+            <div className="font-mono text-[10px] text-slate2-500 uppercase tracking-[0.18em]">Annual loaded</div>
+            <div className="font-mono text-[22px] text-slate-100 leading-none mt-1 tabular-nums">
+              ${humanLoaded.toLocaleString()}
+            </div>
+            <div className="font-mono text-[10px] text-slate2-500 mt-1">deterministic · 1 FTE</div>
+          </div>
+        </div>
+
+        {/* Agent column */}
+        <div className={`relative rounded-md border bg-ink-900/40 p-3 overflow-hidden ${
+          agentHigher ? 'border-crimson2-500/40' : 'border-ink-700/70'
+        }`}>
+          {/* Live progress strip */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-amber2-500/40">
+            <div className="h-full bg-amber2-400" style={{ width: `${(live % 60) / 60 * 100}%` }} />
+          </div>
+
+          <div className="flex items-center gap-2 mb-2">
+            <Icon name="Bot" className="w-3.5 h-3.5 text-amber2-400" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber2-400">Agent compute</span>
+          </div>
+
+          <Row label="License (annual)" value="$4,800" />
+          <Row label="Context window"   value="142,000 tok" />
+          <Row label="Tokens / loop"    value="~ 28k in · 6k out" />
+          <Row label="Active loops"     value={`${24 + (live % 7)} concurrent`} />
+
+          <div className="mt-2 pt-2 border-t border-ink-700/60">
+            <div className="font-mono text-[10px] text-amber2-400 uppercase tracking-[0.18em] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber2-400 pulse-dot" />
+              Live burn · 24h rolling
+            </div>
+            <div className="font-mono text-[22px] text-amber2-400 leading-none mt-1 tabular-nums">
+              ${agentDaily.toLocaleString()}<span className="text-[12px] text-slate2-400"> /day</span>
+            </div>
+
+            <div className="mt-2 font-mono text-[10px] text-slate2-500 uppercase tracking-[0.18em]">Annualized</div>
+            <div className={`font-mono text-[18px] leading-none mt-1 tabular-nums ${
+              agentHigher ? 'text-crimson2-400' : 'text-emerald2-400'
+            }`}>
+              ${agentAnnual.toLocaleString()}
+            </div>
+            <div className="font-mono text-[10px] text-slate2-500 mt-1">unsupervised loop assumption</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Delta strip */}
+      <div className={`mt-3 rounded-md border px-3 py-2 flex items-center gap-3 ${
+        agentHigher
+          ? 'border-crimson2-500/40 bg-crimson2-500/[0.06]'
+          : 'border-emerald2-500/40 bg-emerald2-500/[0.05]'
+      }`}>
+        <Icon
+          name={agentHigher ? 'TrendingUp' : 'TrendingDown'}
+          className={`w-4 h-4 ${agentHigher ? 'text-crimson2-400' : 'text-emerald2-400'}`}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="text-[12px] text-slate-100">
+            {agentHigher
+              ? 'Agent loops cost more than the equivalent FTE'
+              : 'Agent envelope still under FTE cost'}
+          </div>
+          <div className="font-mono text-[10px] text-slate2-500">
+            Δ {agentHigher ? '+' : '−'}${Math.abs(delta).toLocaleString()}/yr · break-even at ~${Math.round(humanLoaded / 365).toLocaleString()}/day
+          </div>
+        </div>
+        <Btn size="xs" icon="Wand2">Optimize loop</Btn>
+      </div>
+
+      {/* Live ticker tape */}
+      <div className="mt-2 overflow-hidden rounded-sm border border-ink-700/60 bg-ink-950/80">
+        <div className="marquee-track whitespace-nowrap font-mono text-[10.5px] text-slate2-400 py-1.5">
+          {Array.from({ length: 2 }).map((_, k) => (
+            <span key={k}>
+              <T label="tok-in"   v={`${(2810 + (live % 99)).toLocaleString()}/s`} />
+              <T label="tok-out"  v={`${(640  + (live % 31)).toLocaleString()}/s`} />
+              <T label="$/min"    v={`$${(0.71 + (live % 13) / 100).toFixed(2)}`} tone="amber" />
+              <T label="ctx-fill" v={`${82 + (live % 18)}%`} />
+              <T label="loop-id"  v={`loop_${(48201 + live).toString(16)}`} />
+              <T label="cache-hit"v={`${44 + (live % 17)}%`} />
+              <T label="retries"  v={`${live % 4}`} />
+            </span>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function Field({ label, value, onChange, prefix, suffix, step = 1, min = 0, max = 1000000, fixed = 0 }) {
+  return (
+    <label className="flex items-center justify-between gap-2 py-1">
+      <span className="text-[11px] text-slate2-400">{label}</span>
+      <div className="inline-flex items-center gap-1 font-mono text-[11px]">
+        {prefix && <span className="text-slate2-500">{prefix}</span>}
+        <input
+          type="number"
+          value={fixed ? (+value).toFixed(fixed) : value}
+          min={min} max={max} step={step}
+          onChange={(e) => onChange(+e.target.value)}
+          className="w-20 bg-ink-850 border border-ink-700 rounded-sm px-1.5 py-0.5 text-right text-slate-100 focus:outline-none focus:border-azure2-500"
+        />
+        {suffix && <span className="text-slate2-500">{suffix}</span>}
+      </div>
+    </label>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <div className="flex items-center justify-between py-1 font-mono text-[11px]">
+      <span className="text-slate2-400">{label}</span>
+      <span className="text-slate-100 tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function T({ label, v, tone }) {
+  return (
+    <span className="mx-3 inline-flex items-center gap-1">
+      <span className="text-slate2-500 uppercase tracking-[0.12em] text-[9.5px]">{label}</span>
+      <span className={tone === 'amber' ? 'text-amber2-400' : 'text-slate-200'}>{v}</span>
+      <span className="text-slate2-700">·</span>
+    </span>
+  );
+}
+
+window.TCOCalculator = TCOCalculator;
+
+
+// HybridEngine — Agent Orchestration & Observability
+// Root component: composes sidebar, top bar, and four dashboard sections.
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function App() {
+  const [active, setActive] = React.useState('dashboard');
+  const [tick,   setTick]   = React.useState(0);
+
+  // PRP metrics — slow-drift simulation
+  const [velocity,    setVelocity]    = React.useState(224);
+  const [throughput,  setThroughput]  = React.useState(43.4);
+  const [stability,   setStability]   = React.useState(16.4);
+  const [spend,       setSpend]       = React.useState(1042);
+
+  React.useEffect(() => {
+    const id = setInterval(() => {
+      setTick((t) => t + 1);
+      setVelocity((v)   => clamp(v   + (Math.random() - 0.4) * 0.6,  210, 240));
+      setThroughput((v) => clamp(v   + (Math.random() - 0.6) * 0.05, 42,  46));
+      setStability((v)  => clamp(v   + (Math.random() - 0.4) * 0.06, 15.6, 17.2));
+      setSpend((v)      => clamp(v   + (Math.random() - 0.45) * 4,   980, 1120));
+    }, 1500);
+    return () => clearInterval(id);
+  }, []);
+
+  const time = new Date(Date.UTC(2026, 4, 22, 14, 32, 8) + tick * 1500)
+    .toISOString().slice(11, 19) + ' UTC';
+
+  return (
+    <div className="h-screen w-screen flex bg-ink-900 bg-grid overflow-auto min-w-[1480px]">
+      <Sidebar active={active} onSelect={setActive} />
+
+      <main className="flex-1 min-w-0 flex flex-col">
+        <TopBar time={time} active={active} />
+
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {/* Section 1 — PRP Header KPIs */}
+          <PRPHeader
+            velocity={velocity}
+            throughput={throughput}
+            stability={stability}
+            spend={spend}
+          />
+
+          {/* Section 2 — Agent Harness Intercept Pipeline */}
+          <div className="grid grid-cols-12 gap-3 mt-4">
+            <HarnessPipeline />
+          </div>
+
+          {/* Sections 3 & 4 — Comprehension Debt + TCO Calculator */}
+          <div className="grid grid-cols-12 gap-3 mt-4 mb-6">
+            <ComprehensionDebt />
+            <TCOCalculator live={tick} />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function TopBar({ time, active }) {
+  const crumbs = {
+    dashboard:    ['Operations', 'Mission Control'],
+    harness:      ['Operations', 'Agent Harness'],
+    fleet:        ['Operations', 'Agent Fleet'],
+    incidents:    ['Operations', 'Incidents'],
+    debt:         ['Insight',    'Debt Analytics'],
+    reviews:      ['Insight',    'Comprehension Reviews'],
+    lineage:      ['Insight',    'Code Lineage'],
+    tco:          ['Insight',    'System TCO'],
+    rules:        ['Configuration', 'Agent.md Ruleset'],
+    sandboxes:    ['Configuration', 'Sandbox Envelopes'],
+    integrations: ['Configuration', 'Integrations'],
+    settings:     ['Configuration', 'Settings'],
+  }[active] || ['Operations', 'Mission Control'];
+
+  return (
+    <header className="h-14 shrink-0 border-b border-ink-700/70 bg-ink-950/60 backdrop-blur flex items-center px-5 gap-4 whitespace-nowrap">
+      {/* Breadcrumbs */}
+      <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate2-400 shrink-0">
+        <span>{crumbs[0]}</span>
+        <Icon name="ChevronRight" className="w-3 h-3 text-slate2-600" />
+        <span className="text-slate-100">{crumbs[1]}</span>
+        <Pill tone="emerald" dot className="ml-2">LIVE</Pill>
+      </div>
+
+      {/* Command search */}
+      <div className="flex-1 max-w-md">
+        <button className="w-full h-8 px-2.5 flex items-center gap-2.5 rounded-sm border border-ink-700 hover:border-ink-600 bg-ink-850/60 text-left">
+          <Icon name="Search" className="w-3.5 h-3.5 text-slate2-500 shrink-0" />
+          <span className="text-[11.5px] text-slate2-400 flex-1 truncate">
+            Run command, route to agent, query log…
+          </span>
+          <Kbd>⌘</Kbd><Kbd>K</Kbd>
+        </button>
+      </div>
+
+      {/* Right cluster */}
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="hidden xl:flex items-center gap-3 pr-3 border-r border-ink-700/70">
+          <TopStat label="incidents"   value="1"     tone="crimson" />
+          <TopStat label="intercepts/h" value="38"   tone="amber"  />
+          <TopStat label="agents"      value="24/40" tone="emerald" />
+        </div>
+        <Btn size="sm" variant="ghost" icon="Bell">3</Btn>
+        <Btn size="sm" variant="ghost" icon="GitPullRequest">PRs</Btn>
+        <Btn size="sm" variant="amber" icon="ShieldAlert">1 awaiting HITL</Btn>
+        <div className="pl-2 ml-1 border-l border-ink-700/70 font-mono text-[10.5px] text-slate2-400 tabular-nums">
+          {time}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function TopStat({ label, value, tone }) {
+  const tones = {
+    crimson: 'text-crimson2-400',
+    amber:   'text-amber2-400',
+    emerald: 'text-emerald2-400',
+  };
+  return (
+    <div className="flex items-baseline gap-1.5 font-mono text-[10.5px]">
+      <span className="uppercase tracking-[0.14em] text-slate2-500">{label}</span>
+      <span className={`tabular-nums ${tones[tone]}`}>{value}</span>
+    </div>
+  );
+}
+
+// Boot
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+  </script>
+</body>
+</html>
