@@ -1,0 +1,154 @@
+{
+  "project": "TCO Optimisation Model \u2014 Sprint One",
+  "version": "1.0.0",
+  "created_at": "2026-05-22T14:10:58.206786+00:00",
+  "seed": 42,
+  "ensemble": {
+    "classifier": "StackingClassifier(XGB+DT+ANN+LR \u2192 LR meta)",
+    "regressor": "StackingRegressor(XGB+DT+ANN+LinearR \u2192 Ridge meta)"
+  },
+  "classification_metrics": {
+    "accuracy": 0.9,
+    "precision": 0.8996313374320593,
+    "recall": 0.9,
+    "f1": 0.8968877690936513,
+    "confusion_matrix": [
+      [
+        8,
+        0,
+        7
+      ],
+      [
+        0,
+        135,
+        6
+      ],
+      [
+        1,
+        10,
+        73
+      ]
+    ],
+    "report": {
+      "Human": {
+        "precision": 0.8888888888888888,
+        "recall": 0.5333333333333333,
+        "f1-score": 0.6666666666666666,
+        "support": 15.0
+      },
+      "Hybrid": {
+        "precision": 0.9310344827586207,
+        "recall": 0.9574468085106383,
+        "f1-score": 0.9440559440559441,
+        "support": 141.0
+      },
+      "AI": {
+        "precision": 0.8488372093023255,
+        "recall": 0.8690476190476191,
+        "f1-score": 0.8588235294117647,
+        "support": 84.0
+      },
+      "accuracy": 0.9,
+      "macro avg": {
+        "precision": 0.8895868603166116,
+        "recall": 0.7866092536305302,
+        "f1-score": 0.8231820467114584,
+        "support": 240.0
+      },
+      "weighted avg": {
+        "precision": 0.8996313374320593,
+        "recall": 0.9,
+        "f1-score": 0.8968877690936513,
+        "support": 240.0
+      }
+    }
+  },
+  "regression_metrics": {
+    "mape_pct": 5.371618720115197,
+    "rmse": 1.569459473423404,
+    "r2": 0.9859717577356892
+  },
+  "base_learner_breakdown": {
+    "classification": {
+      "XGBoost": {
+        "accuracy": 0.9336,
+        "f1": 0.9322
+      },
+      "DecisionTree": {
+        "accuracy": 0.8423,
+        "f1": 0.8481
+      },
+      "ANN": {
+        "accuracy": 0.8506,
+        "f1": 0.8499
+      },
+      "LogisticRegr": {
+        "accuracy": 0.8216,
+        "f1": 0.819
+      }
+    },
+    "regression": {
+      "XGBoost": {
+        "mape_pct": 8.9695,
+        "rmse": 2.3732,
+        "r2": 0.9663
+      },
+      "DecisionTree": {
+        "mape_pct": 19.0606,
+        "rmse": 5.2378,
+        "r2": 0.8358
+      },
+      "ANN": {
+        "mape_pct": 9.1829,
+        "rmse": 2.2327,
+        "r2": 0.9702
+      },
+      "LinearRegr": {
+        "mape_pct": 4.9646,
+        "rmse": 1.6217,
+        "r2": 0.9843
+      }
+    }
+  },
+  "feature_importance": {
+    "technical_risk_level": 0.10995,
+    "security_criticality": 0.08874,
+    "codebase_age_years": 0.07001,
+    "complexity_score": 0.06495,
+    "regulatory_compliance": 0.0626,
+    "technical_debt_score": 0.06182,
+    "estimated_loc": 0.05284,
+    "project_type": 0.05261,
+    "code_duplication_pct": 0.03495,
+    "language_modernity": 0.03416,
+    "last_refactor_years": 0.03269,
+    "domain_Security": 0.02874,
+    "incident_rate_monthly": 0.02801,
+    "existing_test_coverage_pct": 0.02431,
+    "integration_count": 0.02359,
+    "domain_Data": 0.02106,
+    "dependency_count": 0.01993,
+    "team_familiarity": 0.0192,
+    "budget_pressure": 0.01896,
+    "timeline_days": 0.01808,
+    "seniority_required": 0.018,
+    "documentation_quality": 0.01693,
+    "team_size_required": 0.01591,
+    "documentation_level": 0.01534,
+    "domain_Infrastructure": 0.01438,
+    "performance_tier": 0.01377,
+    "testing_coverage_pct": 0.01373,
+    "maintainability_req": 0.01261,
+    "domain_Mobile": 0.01211
+  },
+  "class_labels": [
+    "Human",
+    "Hybrid",
+    "AI"
+  ],
+  "label_encoding": {
+    "AI": 0,
+    "Human": 1,
+    "Hybrid": 2
+  }
+}

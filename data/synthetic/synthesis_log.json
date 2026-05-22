@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-05-22T14:10:36.438248+00:00",
+  "n_total": 1600,
+  "n_greenfield": 800,
+  "n_legacy": 800,
+  "seed": 42,
+  "label_dist_overall": {
+    "Human": 941,
+    "Hybrid": 561,
+    "AI": 98
+  },
+  "label_dist_greenfield": {
+    "Hybrid": 379,
+    "Human": 334,
+    "AI": 87
+  },
+  "label_dist_legacy": {
+    "Human": 607,
+    "Hybrid": 182,
+    "AI": 11
+  },
+  "profit_margin_stats": {
+    "mean": 32.54,
+    "std": 12.86,
+    "min": 2.0,
+    "max": 66.71
+  }
+}
