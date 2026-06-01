@@ -3,7 +3,9 @@
 **ML-powered team composition recommender for software delivery projects**
 
 [![CI](https://github.com/Data-eng15/cost-optimization-model/actions/workflows/ci.yml/badge.svg)](https://github.com/Data-eng15/cost-optimization-model/actions/workflows/ci.yml)
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://data-eng15.github.io/cost-optimization-model/)
+[![Dashboard](https://img.shields.io/badge/dashboard-GitHub%20Pages-brightgreen)](https://data-eng15.github.io/cost-optimization-model/)
+[![Streamlit](https://img.shields.io/badge/streamlit-live-FF4B4B?logo=streamlit&logoColor=white)](https://cost-optimization-model-3mj7ttpqdjdzbdu4fzzceu.streamlit.app/)
+[![API](https://img.shields.io/badge/API-Render-46E3B7?logo=render&logoColor=white)](https://cost-optimization-model.onrender.com/docs)
 
 > University of Essex · Soham Nageshkumar Dharne · 2026
 
@@ -21,7 +23,11 @@ Given a software project's characteristics — size, risk, domain, tech stack, l
 
 It also predicts the **expected profit margin %** for that configuration.
 
-**[→ Try the live dashboard](https://data-eng15.github.io/cost-optimization-model/)**
+| Link | What it is |
+|------|-----------|
+| **[→ React Dashboard](https://data-eng15.github.io/cost-optimization-model/)** | Static frontend on GitHub Pages — prediction engine, analytics, team economics |
+| **[→ Streamlit App](https://cost-optimization-model-3mj7ttpqdjdzbdu4fzzceu.streamlit.app/)** | Full ML dashboard — real inference, SHAP explainability, dataset explorer |
+| **[→ REST API /docs](https://cost-optimization-model.onrender.com/docs)** | FastAPI Swagger UI — test `/predict` directly in the browser |
 
 ---
 
