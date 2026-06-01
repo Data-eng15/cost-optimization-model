@@ -413,11 +413,39 @@ function PredictionEngine(){
   const[running,setRunning]=React.useState(false);
   const[stage,setStage]=React.useState(0);
 
-  function handlePredict(){
+  async function handlePredict(){
     setRunning(true); setResult(null); setStage(1);
     setTimeout(()=>setStage(2),500);
     setTimeout(()=>setStage(3),1100);
-    setTimeout(()=>{ const r=simulatePredict(f); r.margin=estimateMargin(f,r.team); setResult(r); setRunning(false); setStage(4); },1800);
+
+    // Try the real FastAPI backend first; fall back to JS rule simulator
+    const API_URL = window.TCO_API_URL || '';   // set window.TCO_API_URL before loading if deploying API
+    let r = null;
+    if(API_URL){
+      try{
+        const resp = await fetch(`${API_URL}/predict`,{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({...f, testing_coverage_pct: parseFloat(f.testing_coverage_pct)||70}),
+        });
+        if(resp.ok){
+          const data = await resp.json();
+          r = {
+            team:   data.recommended_team,
+            probs:  data.probabilities,
+            margin: data.predicted_profit_margin_pct,
+            reason: data.nfr06_triggered ? 'Critical risk/security — NFR-06 safety gate prevents AI routing' : `Confidence: ${data.confidence}`,
+            gate:   data.nfr06_triggered ? 'NFR-06' : null,
+            source: 'api',
+          };
+        }
+      } catch(e){ /* API unreachable — fall through to simulator */ }
+    }
+    if(!r){
+      r = simulatePredict(f);
+      r.margin  = estimateMargin(f, r.team);
+      r.source  = 'simulator';
+    }
+    setTimeout(()=>{ setResult(r); setRunning(false); setStage(4); }, API_URL ? 0 : 400);
   }
 
   const upd=(k,v)=>setF(p=>({...p,[k]:v}));
@@ -596,6 +624,11 @@ function PredictionEngine(){
                 <div className={`font-mono text-[36px] leading-none font-bold ${teamColor}`}>{result.team}</div>
                 <div className="mt-1 text-[11.5px] text-slate2-300 leading-snug">{result.reason}</div>
                 {result.gate&&<div className="mt-1.5"><Pill tone="crimson">{result.gate} ACTIVE</Pill></div>}
+                <div className="mt-1.5">
+                  {result.source==='api'
+                    ? <Pill tone="emerald" dot>ML model · real inference</Pill>
+                    : <Pill tone="slate">JS simulator · rule-based</Pill>}
+                </div>
               </div>
 
               {/* Probability distribution */}

@@ -7,6 +7,20 @@
       "runtimeArgs": ["-m", "http.server", "8502"],
       "cwd": "app/frontend",
       "port": 8502
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["app.api:app", "--reload", "--port", "8000"],
+      "env": { "PYTHONPATH": "src" },
+      "port": 8000
+    },
+    {
+      "name": "streamlit",
+      "runtimeExecutable": "streamlit",
+      "runtimeArgs": ["run", "app/dashboard.py", "--server.port", "8501"],
+      "env": { "PYTHONPATH": "src" },
+      "port": 8501
     }
   ]
 }

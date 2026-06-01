@@ -116,8 +116,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab_predict, tab_compare, tab_model, tab_data = st.tabs(
-    ["Prediction", "Greenfield vs Legacy", "Model Performance", "Dataset Explorer"]
+tab_predict, tab_compare, tab_model, tab_data, tab_explain = st.tabs(
+    ["Prediction", "Greenfield vs Legacy", "Model Performance", "Dataset Explorer", "Explain (SHAP)"]
 )
 
 # ── TAB 1: Prediction ───────────────────────────────────────────────────────
@@ -371,3 +371,92 @@ with tab_data:
 
     with st.expander("Raw dataset (first 50 rows)"):
         st.dataframe(view.head(50), use_container_width=True)
+
+# ── TAB 5: Explain (SHAP) ─────────────────────────────────────────────────────
+with tab_explain:
+    st.subheader("SHAP — Why Did the Model Predict This?")
+    st.markdown(
+        "SHAP (SHapley Additive exPlanations) shows the contribution of each feature "
+        "to a specific prediction. Red bars push toward **Human**, blue bars push away."
+    )
+
+    if not submitted:
+        st.info("Run a prediction first (configure project in sidebar → **Analyse Project**), then come back here.")
+    else:
+        try:
+            import shap
+            import matplotlib.pyplot as plt
+
+            # Extract preprocessor + XGBoost base learner from the pipeline
+            pre   = clf_pipe.named_steps["pre"]
+            stack = clf_pipe.named_steps["clf"]
+            xgb   = dict(stack.named_estimators_)["xgb"]
+
+            X_input  = record_to_dataframe(record)
+            X_proc   = pre.transform(X_input)
+
+            # Feature names after transformation
+            from feature_engineering import get_feature_names
+            feat_names = get_feature_names(pre)
+
+            # SHAP TreeExplainer is fast and exact for XGBoost
+            explainer   = shap.TreeExplainer(xgb)
+            shap_values = explainer.shap_values(X_proc)  # shape: (1, n_features, n_classes)
+
+            # Determine predicted class index
+            label_map   = {"Human": 0, "Hybrid": 1, "AI": 2}
+            pred_idx    = label_map.get(rec, 1)
+
+            # shap_values for multiclass: list of arrays [class0, class1, class2]
+            if isinstance(shap_values, list):
+                sv_pred = shap_values[pred_idx][0]
+            else:
+                # newer shap returns (n_samples, n_features, n_classes)
+                sv_pred = shap_values[0, :, pred_idx]
+
+            # Build a tidy DataFrame for plotly
+            import numpy as np
+            sv_df = (
+                pd.DataFrame({"feature": feat_names[:len(sv_pred)], "shap_value": sv_pred})
+                .assign(abs_val=lambda d: d["shap_value"].abs())
+                .sort_values("abs_val", ascending=False)
+                .head(15)
+                .sort_values("shap_value")
+            )
+            sv_df["colour"] = sv_df["shap_value"].apply(lambda v: "#EF5350" if v > 0 else "#42A5F5")
+
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                fig_shap = px.bar(
+                    sv_df, x="shap_value", y="feature", orientation="h",
+                    color="colour", color_discrete_map="identity",
+                    title=f"Top 15 SHAP contributions → predicted: {rec}",
+                    labels={"shap_value": "SHAP value (impact on prediction)", "feature": "Feature"},
+                )
+                fig_shap.update_layout(showlegend=False, height=480)
+                fig_shap.add_vline(x=0, line_dash="dash", line_color="white", opacity=0.4)
+                st.plotly_chart(fig_shap, use_container_width=True)
+
+            with col2:
+                st.markdown("**How to read this:**")
+                st.markdown(
+                    f"- 🔴 **Red bar** → feature pushed the prediction *toward* **{rec}**\n"
+                    f"- 🔵 **Blue bar** → feature pushed the prediction *away* from **{rec}**\n"
+                    f"- Bar length = strength of influence\n\n"
+                    f"Base (expected) value: `{explainer.expected_value[pred_idx] if isinstance(explainer.expected_value, (list, np.ndarray)) else explainer.expected_value:.3f}`\n\n"
+                    f"Sum of SHAP values + base = model's raw score for **{rec}**."
+                )
+                st.divider()
+                st.markdown("**Top positive drivers:**")
+                top_pos = sv_df[sv_df["shap_value"] > 0].tail(3)[::-1]
+                for _, row in top_pos.iterrows():
+                    st.markdown(f"- `{row['feature']}` (+{row['shap_value']:.3f})")
+                st.markdown("**Top negative drivers:**")
+                top_neg = sv_df[sv_df["shap_value"] < 0].head(3)
+                for _, row in top_neg.iterrows():
+                    st.markdown(f"- `{row['feature']}` ({row['shap_value']:.3f})")
+
+        except ImportError:
+            st.error("SHAP not installed. Run: `pip install shap`")
+        except Exception as e:
+            st.error(f"SHAP computation failed: {e}")
