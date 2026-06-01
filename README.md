@@ -29,6 +29,12 @@ It also predicts the **expected profit margin %** for that configuration.
 | **[→ Streamlit App](https://cost-optimization-model-3mj7ttpqdjdzbdu4fzzceu.streamlit.app/)** | Full ML dashboard — real inference, SHAP explainability, dataset explorer |
 | **[→ REST API /docs](https://cost-optimization-model.onrender.com/docs)** | FastAPI Swagger UI — test `/predict` directly in the browser |
 
+### React Dashboard (GitHub Pages)
+[![React Dashboard](docs/screenshots/dashboard.png)](https://data-eng15.github.io/cost-optimization-model/)
+
+### Streamlit App — Full ML Inference + SHAP
+[![Streamlit App](docs/screenshots/streamlit.png)](https://cost-optimization-model-3mj7ttpqdjdzbdu4fzzceu.streamlit.app/)
+
 ---
 
 ## Results
