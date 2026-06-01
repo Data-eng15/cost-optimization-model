@@ -13,7 +13,7 @@ from model import predict
 @pytest.fixture(scope="module")
 def artefacts():
     clf = load_model(MODELS_DIR / "xgboost_classifier.pkl")
-    rgr = load_model(MODELS_DIR / "random_forest_classifier.pkl")
+    rgr = load_model(MODELS_DIR / "stacking_regressor.pkl")
     meta = load_json(METADATA_PATH)
     return clf, rgr, meta
 
@@ -81,7 +81,7 @@ def sample_record(sample_greenfield):
 class TestModelArtefacts:
     def test_model_files_exist(self):
         assert (MODELS_DIR / "xgboost_classifier.pkl").exists()
-        assert (MODELS_DIR / "random_forest_classifier.pkl").exists()
+        assert (MODELS_DIR / "stacking_regressor.pkl").exists()
         assert METADATA_PATH.exists()
 
     def test_metadata_keys(self, artefacts):

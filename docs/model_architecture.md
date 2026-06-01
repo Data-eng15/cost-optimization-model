@@ -113,7 +113,7 @@ XGBoost and ANN (sklearn MLP) are the correct choices for this problem:
 
 Models are serialised with `joblib` to:
 - `models/xgboost_classifier.pkl` — full sklearn Pipeline (preprocessing + StackingClassifier)
-- `models/random_forest_classifier.pkl` — full sklearn Pipeline (preprocessing + StackingRegressor)
+- `models/stacking_regressor.pkl` — full sklearn Pipeline (preprocessing + StackingRegressor)
 
 Both pipelines are self-contained: the preprocessor is fitted and stored inside the pipeline, so inference requires only the input DataFrame — no separate preprocessing step.
 

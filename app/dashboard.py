@@ -39,7 +39,7 @@ st.set_page_config(
 @st.cache_resource
 def load_artefacts():
     clf  = load_model(MODELS_DIR / "xgboost_classifier.pkl")
-    rgr  = load_model(MODELS_DIR / "random_forest_classifier.pkl")
+    rgr  = load_model(MODELS_DIR / "stacking_regressor.pkl")
     meta = load_json(METADATA_PATH)
     return clf, rgr, meta
 

@@ -285,7 +285,7 @@ def save_artefacts(
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     save_model(clf_pipe, MODELS_DIR / "xgboost_classifier.pkl")
-    save_model(rgr_pipe, MODELS_DIR / "random_forest_classifier.pkl")
+    save_model(rgr_pipe, MODELS_DIR / "stacking_regressor.pkl")
 
     metadata = {
         "project":        "TCO Optimisation Model — Sprint One",

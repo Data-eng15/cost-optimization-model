@@ -90,7 +90,7 @@ cost-optimization-model/
 │
 ├── models/
 │   ├── xgboost_classifier.pkl    Trained classification pipeline (sklearn Pipeline)
-│   ├── random_forest_classifier.pkl  Trained regression pipeline (misleading name — actually StackingRegressor)
+│   ├── stacking_regressor.pkl  Trained regression pipeline (misleading name — actually StackingRegressor)
 │   └── model_metadata.json       All metrics, hyperparams, feature importances
 │
 ├── data/
