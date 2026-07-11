@@ -25,7 +25,6 @@ It also predicts the **expected profit margin %** for that configuration.
 
 | Link | What it is |
 |------|-----------|
-| **[→ React Dashboard](https://data-eng15.github.io/cost-optimization-model/)** | Static frontend on GitHub Pages — prediction engine, analytics, team economics |
 | **[→ Streamlit App](https://cost-optimization-model-3mj7ttpqdjdzbdu4fzzceu.streamlit.app/)** | Full ML dashboard — real inference, SHAP explainability, dataset explorer |
 | **[→ REST API /docs](https://cost-optimization-model.onrender.com/docs)** | FastAPI Swagger UI — test `/predict` directly in the browser |
 
